@@ -477,4 +477,6 @@ Wenn du unsicher bist, ob ein Konzept/eine Bibliothek erlaubt ist:
 
 
 
-Rücken an der Wand
+## Professor Feedback
+
+One bottleneck could be streamlit's ability to provide and handle user accounts; and real-time sync. This use case screams for a distributed system in which you demo it with multiple users. Streamlit is a bit hard to bend that way to make it work; perhaps you need a bit of a more sophisticated backend that actually runs in the cloud or on the local network. Something to watch out for; but ChatGPT (or me) can surely help here.
