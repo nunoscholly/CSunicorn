@@ -17,3 +17,6 @@ __pycache__/
 # Database
 *.sqlite
 *.db
+
+# Streamlit secrets (contains Supabase keys — never commit)
+.streamlit/secrets.toml
