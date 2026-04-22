@@ -15,7 +15,7 @@ Die Kursmaterialien bestehen aus PowerPoint-Folien. Konkrete Code-Beispiele werd
 ## Erlaubte Programmiersprache(n)
 
 - **Python 3** (über Anaconda-Distribution, ausgeführt in Jupyter Notebooks oder als `.py`-Dateien aus dem Terminal).
-- **SQL** (ab Woche 7, ausschliesslich eingebettet in Python über `sqlite3`; siehe Chinook-Datenbank-Muster).
+- **SQL** (ab Woche 7, eingebettet in Python über `sqlite3` für Kurs-Übungen; für das Gruppenprojekt über **Supabase** (gehostetes PostgreSQL) via `supabase-py` Client).
 - **HTML** nur passiv (als Output von HTTP-Requests, nicht selbst geschrieben).
 
 Keine andere Sprache verwenden. Kein TypeScript/JavaScript, kein R, kein Go, kein Rust.
@@ -92,7 +92,7 @@ Keine andere Sprache verwenden. Kein TypeScript/JavaScript, kein R, kein Go, kei
 ### Woche 7 — Relationale Datenbanken & SQL
 - Relationales Modell: Tabellen, Zeilen (tuples), Spalten (attributes), Primary Key, Foreign Key
 - Normalisierung (1NF, 2NF, 3NF) — beim Datenbankentwurf beachten
-- **SQLite über Python-Standardbibliothek**:
+- **SQLite über Python-Standardbibliothek** (Kurs-Demos):
   - `import sqlite3`
   - `conn = sqlite3.connect("db.sqlite")`
   - `cursor = conn.cursor()`
@@ -101,6 +101,12 @@ Keine andere Sprache verwenden. Kein TypeScript/JavaScript, kein R, kein Go, kei
   - `conn.commit()`, `conn.close()`
 - **SQL-Befehle (basic)**: `SELECT`, `FROM`, `WHERE`, `ORDER BY`, `GROUP BY`, `HAVING`, `JOIN` (INNER/LEFT), `INSERT INTO`, `UPDATE`, `DELETE FROM`, `CREATE TABLE`
 - Referenzdatenbank: **Chinook** (in Kurs-Demo verwendet).
+- **Supabase** (Gruppenprojekt-Backend — siehe Professor Feedback):
+  - Gehostetes PostgreSQL mit REST-API und eingebauter Authentifizierung
+  - Python-Client: `from supabase import create_client`
+  - Tabellen-Operationen: `.table("name").select()`, `.insert()`, `.update()`, `.delete()`
+  - Auth: `supabase.auth.sign_in_with_password()`, `supabase.auth.sign_up()`
+  - Konzeptionell gleich wie W7 (relationale Tabellen, SQL-Denke), nur über API statt lokale Datei
 
 ### Woche 8 — Data Science Intro (NumPy & Pandas)
 - **NumPy**:
@@ -165,6 +171,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 import sqlite3
 import requests
+from supabase import create_client
 
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
@@ -175,7 +182,7 @@ from sklearn.metrics import ConfusionMatrixDisplay, classification_report, accur
 from functools import reduce
 ```
 
-Importiere niemals Bibliotheken, die in der Konzept-Liste oben nicht vorkommen.
+Importiere niemals Bibliotheken, die in der Konzept-Liste oben nicht vorkommen — **Ausnahme**: `supabase` ist für das Gruppenprojekt explizit erlaubt (siehe Professor Feedback & Backend-Entscheidung).
 
 ### Daten laden & splitten (aus W10, Folie 59)
 
@@ -271,6 +278,53 @@ if response.status_code == 200:
     print(data)
 ```
 
+### Supabase in Python (Gruppenprojekt)
+
+```python
+import streamlit as st
+from supabase import create_client
+
+# Verbindung herstellen (URL und Key aus Supabase-Dashboard)
+SUPABASE_URL = "https://xxxxx.supabase.co"
+SUPABASE_KEY = "eyJhbGciOi..."
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Daten abfragen
+response = supabase.table("users").select("*").execute()
+all_users = response.data  # Liste von Dicts
+
+# Daten filtern
+response = supabase.table("tasks").select("*").eq("zone", "Stage A").execute()
+stage_a_tasks = response.data
+
+# Daten einfügen
+supabase.table("tasks").insert({
+    "zone": "Catering",
+    "shift": "08:00-10:00",
+    "people_needed": 3,
+    "description": "Set up tables"
+}).execute()
+
+# Daten aktualisieren
+supabase.table("tasks").update({"people_needed": 5}).eq("id", 42).execute()
+
+# Daten löschen
+supabase.table("tasks").delete().eq("id", 42).execute()
+
+# Authentifizierung — Registrierung
+supabase.auth.sign_up({"email": "volunteer@example.com", "password": "secure123"})
+
+# Authentifizierung — Login
+response = supabase.auth.sign_in_with_password({
+    "email": "volunteer@example.com",
+    "password": "secure123"
+})
+session = response.session
+user = response.user
+```
+
+Supabase-Credentials (`SUPABASE_URL`, `SUPABASE_KEY`) gehören in `st.secrets` (via `.streamlit/secrets.toml`) oder Umgebungsvariablen — **niemals hart in den Code schreiben und committen**.
+
 ---
 
 ## Verbotene Konzepte (noch nicht gelernt)
@@ -326,14 +380,15 @@ Verwende **keines** der folgenden Konstrukte, Muster oder Bibliotheken — unabh
 - **Cross-Validation** jenseits dessen, was in W10/W11 explizit eingeführt wird
 
 ### Datenbanken — verboten
-- Andere DBMS als SQLite: PostgreSQL, MySQL, MongoDB, Redis
+- Andere DBMS als SQLite oder Supabase (PostgreSQL): MySQL, MongoDB, Redis — **Ausnahme**: Supabase (gehostetes PostgreSQL) ist für das Gruppenprojekt erlaubt, konsumiert über den `supabase-py` Client
 - Stored Procedures, Triggers, Views (ausser der User verlangt es explizit)
 - Transaktions-Isolation-Level-Konfiguration
+- **ORMs bleiben verboten** — Supabase wird über seinen eigenen Python-Client konsumiert, nicht über SQLAlchemy o. Ä.
 
 ### Web — verboten
-- Authentifizierung, Sessions, Cookies (ausser der User verlangt es explizit)
+- Authentifizierung, Sessions, Cookies — **Ausnahme**: Authentifizierung über Supabase Auth ist erlaubt (sign_up, sign_in, Rollen-Management). Session-State wird über `st.session_state` verwaltet.
 - Eigene HTTP-Server (kein Flask, kein FastAPI)
-- WebSockets
+- WebSockets (Supabase Realtime wird nicht verwendet — stattdessen einfaches Polling/Refresh)
 
 ---
 
@@ -473,10 +528,42 @@ Wenn du unsicher bist, ob ein Konzept/eine Bibliothek erlaubt ist:
 2. Steht es **explizit in der Verbotsliste**? → verboten.
 3. Weder noch? → **verboten** (konservative Default-Regel). Kommentiere das kurz im Chat, bevor du eine alternative Lösung schreibst.
 
-**Sonderfall Projektidee:** Der Nutzer baut eine App, die Sportdaten orchestriert. Sport-APIs werden also konsumiert (W6-Muster mit `requests`), Daten in SQLite gespeichert (W7), mit Pandas analysiert (W8/W9), ggf. per scikit-learn vorhergesagt (W10/W11), und über Streamlit präsentiert (W4). Das deckt den kompletten Kursbogen ab — halte dich konsequent an dieses Set.
+**Sonderfall Projektidee:** Der Nutzer baut **START CREW** — eine Echtzeit-Koordinations-App für die Start Summit Build Week. Daten werden in **Supabase** (gehostetes PostgreSQL) gespeichert und über den `supabase-py` Client gelesen/geschrieben (W6/W7-Muster), mit Pandas analysiert (W8/W9), per scikit-learn vorhergesagt (W10/W11), und über Streamlit präsentiert (W4). Authentifizierung läuft über Supabase Auth. Das deckt den kompletten Kursbogen ab — halte dich konsequent an dieses Set.
 
 
 
 ## Professor Feedback
 
 One bottleneck could be streamlit's ability to provide and handle user accounts; and real-time sync. This use case screams for a distributed system in which you demo it with multiple users. Streamlit is a bit hard to bend that way to make it work; perhaps you need a bit of a more sophisticated backend that actually runs in the cloud or on the local network. Something to watch out for; but ChatGPT (or me) can surely help here.
+
+---
+
+## Backend-Entscheidung: Supabase (April 2026)
+
+Basierend auf dem Professor Feedback haben wir entschieden, **Supabase** als Backend für das Gruppenprojekt zu verwenden. Supabase löst genau die vom Professor genannten Probleme:
+
+### Warum Supabase statt SQLite?
+
+| Problem (Prof. Feedback) | SQLite-Limitation | Supabase-Lösung |
+|---|---|---|
+| User Accounts | Keine eingebaute Auth, müsste manuell in SQLite gebaut werden | **Supabase Auth** — E-Mail/Passwort, Session-Management, Rollen via User-Metadata |
+| Real-time Sync | SQLite ist eine lokale Datei, kein Netzwerkzugriff | **Cloud-hosted PostgreSQL** — alle Clients lesen/schreiben dieselbe DB |
+| Multi-User Demo | Jeder User bräuchte eine lokale Kopie | **Zentraler Server** — mehrere Browser-Tabs/Geräte gleichzeitig |
+| Distributed System | Nicht möglich mit SQLite | **Supabase läuft in der Cloud**, Streamlit-App verbindet sich per API |
+
+### Was sich im Code ändert
+
+- `sqlite3` wird im Projekt durch `supabase-py` ersetzt (Kurs-Übungen mit `sqlite3` bleiben unberührt)
+- SQL-Konzepte (Tabellen, Relationen, Abfragen) bleiben **identisch** — nur der Zugriffsmechanismus ändert sich
+- Der `supabase-py` Client ist konzeptionell ein API-Client (wie `requests` in W6), der SQL-Operationen über REST ausführt
+- Authentifizierung wird über `supabase.auth` gelöst statt über selbstgebaute Session-Logik
+
+### Supabase-Regeln für Claude Code
+
+1. **Credentials niemals hart coden** — immer über `st.secrets` oder `.env` laden
+2. **Einfache Operationen bevorzugen**: `.select()`, `.insert()`, `.update()`, `.delete()` mit `.eq()`, `.gt()`, `.lt()` etc.
+3. **Keine Supabase Realtime** (WebSocket-basiert) — stattdessen einfaches Page-Refresh / `st.rerun()`
+4. **Keine Supabase Edge Functions** — Logik bleibt komplett in Python
+5. **Keine Supabase Storage** — Dateien werden lokal oder über Streamlit's `file_uploader` gehandhabt
+6. **Row Level Security (RLS)** kann in Supabase-Dashboard konfiguriert werden, aber der Python-Code soll trotzdem immer explizit nach Rolle/Team filtern (Defense in Depth)
+7. **Fehlerbehandlung**: `try/except` nur wo nötig (Netzwerkfehler bei Supabase-Calls), ansonsten einfach geradeaus programmieren

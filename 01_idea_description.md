@@ -40,7 +40,7 @@ The app solves both problems in parallel:
 | Course | Grundlagen und Methoden der Informatik |
 | Institution | University of St. Gallen (HSG) |
 | Project type | Group project — graded web application |
-| Tech stack | Python · Streamlit · SQLite · scikit-learn · Airtable/Google Sheets API |
+| Tech stack | Python · Streamlit · Supabase (PostgreSQL + Auth) · scikit-learn · Airtable/Google Sheets API |
 | Deliverables | Working app + source code + 4-minute video demo |
 | Deadline | Thursday 14 May 2026, 23:59 on Canvas |
 | Team size | 5 members |
@@ -54,7 +54,7 @@ The project is graded across 8 criteria, each scored 0–3. 16+ points = 100%.
 | # | Criterion | How START CREW satisfies it |
 |---|---|---|
 | 1 | Clear problem definition | Coordination failure and information asymmetry during Start Summit build week — a real, documented use case with named stakeholders |
-| 2 | API + Database | Airtable/Google Sheets API for live volunteer and task data; SQLite database stores assignments, requests, and shift history |
+| 2 | API + Database | Airtable/Google Sheets API for live volunteer and task data; Supabase (PostgreSQL) stores assignments, requests, and shift history; Supabase Auth handles user accounts |
 | 3 | Data visualisation | ML forecast chart, zone progress bars, staffing stat cards, sector map, outstanding requests dashboard |
 | 4 | User interaction | Task commitment, manpower request form, task upload, user management, notification sending, map upload |
 | 5 | Machine learning | Demand forecasting model (regression/time-series) predicting manpower needs per team per shift across the full day |
@@ -77,14 +77,14 @@ The application is structured in four layers:
 │  Matching engine · Shift allocation · Notifications │
 ├─────────────────────────────────────────────────────┤
 │  DATA LAYER                                         │
-│  Airtable/Sheets API · SQLite database              │
+│  Supabase (PostgreSQL + Auth) · Airtable/Sheets API │
 ├─────────────────────────────────────────────────────┤
 │  ML LAYER — scikit-learn                            │
 │  Demand forecasting · Historical training data      │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Data flow:** Volunteer roster and initial task list are pulled from Airtable/Google Sheets via API (familiar tool for organisers). All real-time activity — assignments, requests, notifications, completions — is written to and read from SQLite. The ML model is trained on historical shift data from past Start Summit editions and generates predictions on page load, stored in a `forecasts` table.
+**Data flow:** Volunteer roster and initial task list are pulled from Airtable/Google Sheets via API (familiar tool for organisers). All real-time activity — assignments, requests, notifications, completions — is written to and read from **Supabase** (cloud-hosted PostgreSQL). User authentication (login, signup, role assignment) is handled by Supabase Auth. The ML model is trained on historical shift data from past Start Summit editions and generates predictions on page load, stored in a `forecasts` table.
 
 ---
 
@@ -93,7 +93,7 @@ The application is structured in four layers:
 | Role | Responsibilities |
 |---|---|
 | TM1 — Project Lead + UI | Overall coordination, Streamlit frontend, volunteer and lead portals, app layout, video recording |
-| TM2 — Data Engineer | Airtable API integration, SQLite schema design, data ingestion pipeline, data cleaning |
+| TM2 — Data Engineer | Airtable API integration, Supabase schema design, data ingestion pipeline, data cleaning |
 | TM3 — ML Engineer | Demand forecasting model, feature engineering, model evaluation, forecast visualisation |
 | TM4 — Backend Logic | Matching engine, shift allocation logic, request/response flows, dashboard data feeds |
 | TM5 — QA + Docs | Testing, code documentation, contribution matrix, Streamlit Cloud deployment |
@@ -105,7 +105,7 @@ The application is structured in four layers:
 | Project management | Lead | Support | Support | Support | Contrib |
 | Streamlit UI | Lead | — | Support | Contrib | Support |
 | API integration | Support | Lead | — | Contrib | — |
-| Database (SQLite) | — | Lead | Support | Contrib | — |
+| Database (Supabase) | — | Lead | Support | Contrib | — |
 | Matching engine | Support | Support | — | Lead | — |
 | ML / forecasting | — | Contrib | Lead | — | Support |
 | Data visualisation | Contrib | Support | Contrib | Lead | — |
