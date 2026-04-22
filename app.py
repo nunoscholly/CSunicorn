@@ -1,5 +1,4 @@
 import streamlit as st
-import numpy as np
 from model import predict
 
 st.title("CSUnicorn")
