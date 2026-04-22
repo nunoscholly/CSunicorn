@@ -1,7 +1,7 @@
-streamlit
-numpy
+supabase
 pandas
+numpy
 scikit-learn
 matplotlib
 requests
-supabase
+python-dotenv
