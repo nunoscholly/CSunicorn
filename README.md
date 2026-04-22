@@ -114,3 +114,15 @@ Jeder kann unabhängig mit Claude Code an Features arbeiten. Die Konfiguration i
 | 8 | 4-Minuten Video | ⬜ Noch ausstehend |
 
 **Deadline:** 14. Mai 2026, 23:59 auf Canvas
+
+---
+
+## Hosting
+
+| Service | Plattform | Zweck |
+|---|---|---|
+| Frontend | **Vercel** (free) | Next.js — automatisches Deploy bei git push |
+| ML Service | **Render** (free) | Python Cron Job — Forecast-Skript alle 2h |
+| Datenbank & Auth | **Supabase** (free) | PostgreSQL + Auth + RLS |
+
+Während der Entwicklung läuft alles lokal (`npm run dev` + `python ml/forecast.py`). Deployment erst am Ende — Details in `docs/tech_architecture.md`.
