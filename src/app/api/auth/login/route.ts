@@ -1,10 +1,15 @@
 // POST /api/auth/login — Server-seitige Anmeldung.
-// Setzt die Session-Cookies serverseitig, damit der Proxy (middleware) und
-// alle Server Components die Session sofort sehen. Zuverlässiger als
-// rein client-seitiges signInWithPassword, weil die Cookies direkt auf
-// der Response landen.
+// Setzt die Session-Cookies serverseitig, damit die Server Components
+// auf den Dashboard-Seiten die Session sofort sehen.
+//
+// Ablauf:
+// 1. signInWithPassword über @supabase/ssr → setzt Session-Cookies
+// 2. Profil-Abfrage über @supabase/supabase-js mit dem frischen
+//    Access-Token (nicht über den SSR-Client, weil der die gerade
+//    gesetzten Cookies im selben Request nicht zuverlässig liest).
 
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -21,6 +26,8 @@ export async function POST(request: Request) {
 
     const cookieStore = await cookies();
 
+    // SSR-Client für signInWithPassword — setzt die Session-Cookies
+    // auf der Response, damit nachfolgende Seiten-Aufrufe authentifiziert sind.
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -44,21 +51,41 @@ export async function POST(request: Request) {
         password,
     });
 
-    if (error || !data.user) {
+    if (error || !data.session) {
         return NextResponse.json(
             { error: "Anmeldung fehlgeschlagen. E-Mail und Passwort prüfen." },
             { status: 401 },
         );
     }
 
-    // Profil laden: Rolle und Aktiv-Status prüfen
-    const { data: profile } = await supabase
+    // Profil laden: Eigener Client mit dem frischen Access-Token, weil der
+    // SSR-Client die gerade gesetzten Cookies im selben Request nicht
+    // zuverlässig für PostgREST-Queries nutzen kann (bekanntes @supabase/ssr-Problem).
+    const directClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            global: {
+                headers: {
+                    Authorization: `Bearer ${data.session.access_token}`,
+                },
+            },
+            auth: {
+                // Kein Auto-Refresh nötig — einmaliger Aufruf nur für Profil-Query.
+                autoRefreshToken: false,
+                persistSession: false,
+            },
+        },
+    );
+
+    const { data: profile } = await directClient
         .from("profiles")
         .select("role, is_active")
         .eq("id", data.user.id)
         .single();
 
     if (!profile) {
+        // Session aufräumen wenn kein Profil existiert
         await supabase.auth.signOut();
         return NextResponse.json(
             { error: "Kein Profil gefunden. Bitte an einen Admin wenden." },

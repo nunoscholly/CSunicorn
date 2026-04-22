@@ -20,6 +20,7 @@ export async function POST(request: Request) {
 
     const cookieStore = await cookies();
 
+    // SSR-Client für signUp — setzt Session-Cookies auf der Response.
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
