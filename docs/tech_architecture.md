@@ -6,6 +6,7 @@
 ┌─────────────────────────────────────────────────────┐
 │  FRONTEND — Next.js 14 (App Router)                 │
 │  TypeScript · Tailwind CSS · Supabase client        │
+│  Hosting: Vercel (free tier)                        │
 │  Pages: Login · PM Dashboard · Team Lead ·          │
 │         Volunteer · Admin                           │
 ├─────────────────────────────────────────────────────┤
@@ -15,6 +16,7 @@
 ├─────────────────────────────────────────────────────┤
 │  ML SERVICE — Python 3                              │
 │  scikit-learn · pandas · numpy · matplotlib         │
+│  Hosting: Render (free tier, cron job)              │
 │  Reads/writes Supabase directly via supabase-py     │
 └─────────────────────────────────────────────────────┘
 ```
@@ -146,3 +148,105 @@ CSunicorn/
 | `/lead` | admin, lead |
 | `/volunteer` | admin, volunteer |
 | `/admin` | admin |
+
+---
+
+## Hosting & Deployment
+
+### Lokal (Entwicklung)
+
+Während der Entwicklung läuft alles lokal — kein Deployment nötig:
+
+- **Next.js:** `npm run dev` → `http://localhost:3000`
+- **Python:** `cd ml && python forecast.py` (manuell bei Bedarf)
+- **Supabase:** Cloud-Instanz (gleiche für dev und prod, oder separate Projekte)
+
+### Produktion (für Demo und Abgabe)
+
+| Service | Plattform | Tier | Zweck |
+|---|---|---|---|
+| Frontend | **Vercel** | Free | Next.js Hosting, automatisches Deploy bei git push |
+| ML Service | **Render** | Free | Python Cron Job, führt Forecast-Skript regelmässig aus |
+| Datenbank & Auth | **Supabase** | Free | PostgreSQL, Auth, RLS — bereits eingerichtet |
+
+### Vercel (Next.js Frontend)
+
+**Warum Vercel:** Vercel ist der Hersteller von Next.js — zero-config Deploy, automatische Previews für PRs, kostenloser Free Tier ausreichend.
+
+**Setup:**
+1. Vercel-Account erstellen auf vercel.com (mit GitHub anmelden)
+2. "New Project" → GitHub-Repo `nunoscholly/CSunicorn` importieren
+3. Framework wird automatisch als "Next.js" erkannt
+4. Environment Variables setzen:
+   - `NEXT_PUBLIC_SUPABASE_URL` → Supabase Projekt-URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` → Supabase Anon Key
+5. "Deploy" klicken — fertig
+
+**Automatisches Deploy:** Jeder Push auf `main` löst ein neues Deployment aus. PRs bekommen automatisch eine Preview-URL.
+
+**Custom Domain (optional):** Im Vercel Dashboard unter "Domains" eine eigene Domain oder die `*.vercel.app` Subdomain verwenden.
+
+### Render (Python ML Service)
+
+**Warum Render:** Eingebaute Cron Jobs im Free Tier, einfaches Deployment via Git, keine Docker-Kenntnisse nötig.
+
+**Setup:**
+1. Render-Account erstellen auf render.com (mit GitHub anmelden)
+2. "New +" → "Cron Job" wählen
+3. GitHub-Repo verbinden, Root Directory auf `ml` setzen
+4. Build Command: `pip install -r requirements.txt`
+5. Start Command: `python forecast.py`
+6. Schedule: `0 */2 * * *` (alle 2 Stunden) oder `0 6 * * *` (täglich um 6 Uhr) — je nach Bedarf
+7. Environment Variables setzen:
+   - `SUPABASE_URL` → Supabase Projekt-URL
+   - `SUPABASE_KEY` → Supabase **Service Role Key** (nicht Anon Key — braucht Schreibrechte auf `forecasts`)
+8. "Create Cron Job" klicken
+
+**Manueller Trigger:** Im Render Dashboard kann der Job jederzeit manuell ausgelöst werden — nützlich für Demos.
+
+**Für die Demo:** Vor dem Video den Cron Job manuell triggern, damit frische Vorhersagen in der Datenbank stehen. Der PM Dashboard liest die Daten dann live.
+
+### render.yaml (optional)
+
+Für Infrastructure-as-Code kann eine `render.yaml` im Repo-Root liegen:
+
+```yaml
+services:
+  - type: cron
+    name: start-crew-forecast
+    runtime: python
+    rootDir: ml
+    buildCommand: pip install -r requirements.txt
+    startCommand: python forecast.py
+    schedule: "0 */2 * * *"
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+```
+
+### Zusammenspiel in Produktion
+
+```
+Nutzer öffnet App
+  → Vercel liefert Next.js Frontend aus
+  → Browser verbindet sich mit Supabase (Auth + Daten)
+  → Alle Lese-/Schreibzugriffe gehen direkt an Supabase
+
+Render Cron Job (alle 2h oder manuell)
+  → Führt ml/forecast.py aus
+  → Liest Trainingsdaten + aktuelle Assignments aus Supabase
+  → Trainiert LinearRegression Modell
+  → Schreibt Vorhersagen in forecasts-Tabelle
+  → PM Dashboard zeigt beim nächsten Laden die neuen Werte
+
+Kein direkter Traffic zwischen Vercel und Render — beide sprechen nur mit Supabase.
+```
+
+### Kosten
+
+Alles im Free Tier:
+- **Vercel Free:** 100 GB Bandwidth/Monat, automatische Deploys — mehr als genug
+- **Render Free:** 750h Cron-Runtime/Monat — ein 30-Sekunden-Forecast 12x/Tag = ~6h/Monat
+- **Supabase Free:** 500 MB DB, 50.000 Auth-User, 2 GB Bandwidth — weit mehr als nötig

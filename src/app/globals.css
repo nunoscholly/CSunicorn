@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+/* START CREW Brand-Farben */
+:root {
+  --background: #111111;
+  --foreground: #ffffff;
+  --surface: #1a1a1a;
+  --concrete: #555555;
+  --signal-yellow: #f5c800;
+  --signal-yellow-hover: #e0b800;
+  --urgent-red: #ff4d4d;
+  --success-green: #3ecf8e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-concrete: var(--concrete);
+  --color-signal-yellow: var(--signal-yellow);
+  --color-signal-yellow-hover: var(--signal-yellow-hover);
+  --color-urgent-red: var(--urgent-red);
+  --color-success-green: var(--success-green);
+  --font-sans: "Avenir Next", Avenir, "Helvetica Neue", sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Avenir Next", Avenir, "Helvetica Neue", sans-serif;
+}

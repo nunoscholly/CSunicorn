@@ -8,6 +8,7 @@ Real-time coordination app for the Start Summit build week. University of St. Ga
 - **ML service:** Python 3 — scikit-learn, pandas, numpy, matplotlib (course-constrained, see docs/course_constraints.md)
 - **DB & Auth:** Supabase (hosted PostgreSQL + Supabase Auth)
 - **API layer:** Next.js API routes for frontend data; Python writes ML results directly to Supabase via `supabase-py`
+- **Hosting:** Vercel (Next.js) · Render cron job (Python ML) · Supabase (DB + Auth). Dev: always localhost. Details in docs/tech_architecture.md.
 
 ## Commands
 

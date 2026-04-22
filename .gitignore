@@ -1,22 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
 # Python
 __pycache__/
 *.pyc
 .venv/
+ml/.venv/
 
-# Environment
+# Environment — NEVER commit these
 .env
 .env.local
+.env.production
+.env.*.local
+ml/.env
+
+# Supabase local
+supabase/.temp/
 
 # OS
 .DS_Store
+Thumbs.db
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Database
+# Database (legacy)
 *.sqlite
 *.db
 
-# Supabase keys — never commit
-.env.local
+# Build
+dist/
+build/
