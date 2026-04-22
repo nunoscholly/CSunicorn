@@ -474,3 +474,7 @@ Wenn du unsicher bist, ob ein Konzept/eine Bibliothek erlaubt ist:
 3. Weder noch? → **verboten** (konservative Default-Regel). Kommentiere das kurz im Chat, bevor du eine alternative Lösung schreibst.
 
 **Sonderfall Projektidee:** Der Nutzer baut eine App, die Sportdaten orchestriert. Sport-APIs werden also konsumiert (W6-Muster mit `requests`), Daten in SQLite gespeichert (W7), mit Pandas analysiert (W8/W9), ggf. per scikit-learn vorhergesagt (W10/W11), und über Streamlit präsentiert (W4). Das deckt den kompletten Kursbogen ab — halte dich konsequent an dieses Set.
+
+
+
+Rücken an der Wand
