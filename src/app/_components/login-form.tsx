@@ -1,15 +1,12 @@
-// Login-Formular für die Root-Route. Ruft supabase.auth.signInWithPassword
-// direkt aus dem Browser auf — @supabase/ssr setzt die Session-Cookies,
-// unser Proxy hält sie warm. Nach erfolgreichem Login wird die Rolle aus
-// der profiles-Tabelle geholt und der User auf den korrekten Dashboard-
-// Pfad weitergeleitet.
+// Login-Formular für die Root-Route. Sendet Credentials an /api/auth/login,
+// wo die Session-Cookies serverseitig gesetzt werden. Nach erfolgreichem
+// Login wird der User auf den korrekten Dashboard-Pfad weitergeleitet.
 
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { UserRole } from "@/lib/supabase/types";
 
 // Rollenspezifische Startseite. Admin landet bewusst auf /admin (nicht auf
@@ -33,44 +30,29 @@ export function LoginForm() {
         setError(null);
 
         startTransition(async () => {
-            const supabase = createSupabaseBrowserClient();
-
-            const { data, error: signInError } = await supabase.auth.signInWithPassword({
-                email: email.trim().toLowerCase(),
-                password,
+            // Server-Route kümmert sich um Auth + Cookie-Handling
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
             });
 
-            if (signInError || !data.user) {
+            const data = await response.json();
+
+            if (!response.ok || !data.user) {
                 // Klartext-Fehlermeldung. Passwort leeren, E-Mail behalten —
                 // so wie es docs/visualizations.md §0 verlangt.
-                setError("Anmeldung fehlgeschlagen. E-Mail und Passwort prüfen.");
+                setError(data.error || "Anmeldung fehlgeschlagen.");
                 setPassword("");
                 return;
             }
 
-            // Rolle + is_active nachladen, damit deaktivierte Accounts erst
-            // gar nicht ins Dashboard gelangen.
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("role, is_active")
-                .eq("id", data.user.id)
-                .single<{ role: UserRole; is_active: boolean }>();
-
-            if (!profile) {
-                setError("Kein Profil gefunden. Bitte an einen Admin wenden.");
-                await supabase.auth.signOut();
-                return;
-            }
-            if (!profile.is_active) {
-                setError("Account ist deaktiviert.");
-                await supabase.auth.signOut();
-                return;
-            }
+            const role = data.user.role as UserRole;
 
             // router.replace statt push: nach Login soll der Back-Button nicht
             // auf die Login-Seite führen. refresh() zieht die neuen Server-
             // Component-Daten mit den frischen Session-Cookies.
-            router.replace(ROLE_HOME[profile.role]);
+            router.replace(ROLE_HOME[role]);
             router.refresh();
         });
     }
