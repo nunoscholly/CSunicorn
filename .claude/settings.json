@@ -1,0 +1,69 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Bash(npx *)",
+      "Bash(python3 *)",
+      "Bash(pip install *)",
+      "Bash(mkdir *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git checkout *)",
+      "Bash(git switch *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr view *)",
+      "Bash(find *)",
+      "Bash(which *)",
+      "Bash(node *)",
+      "Bash(curl *)",
+      "mcp__claude_ai_Context7__resolve-library-id",
+      "mcp__claude_ai_Context7__query-docs"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write(.env*)",
+        "hooks": [{
+          "type": "command",
+          "command": "echo '🚫 Do not write to .env files. Add env vars manually.' && exit 1"
+        }]
+      },
+      {
+        "matcher": "Bash(git push*main*)",
+        "hooks": [{
+          "type": "command",
+          "command": "echo '🚫 Direct push to main blocked. Create a PR instead.' && exit 1"
+        }]
+      },
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [{
+          "type": "command",
+          "command": "git diff --cached --diff-filter=d | grep -iE '(api_key|secret|password|token|private_key|supabase_key)\\s*[:=]\\s*[\"'\\'''][^\"'\\''']' && echo '🚫 Possible secret detected in staged files. Review before committing.' && exit 1 || true"
+        }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write(*.ts|*.tsx)",
+        "hooks": [{ "type": "command", "command": "npx prettier --write $file 2>/dev/null || true" }]
+      },
+      {
+        "matcher": "Edit(*.ts|*.tsx)",
+        "hooks": [{ "type": "command", "command": "npx prettier --write $file 2>/dev/null || true" }]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [{
+          "type": "command",
+          "command": "echo \"Session started: $(date '+%Y-%m-%d %H:%M') | Branch: $(git branch --show-current 2>/dev/null || echo 'no git') | Last commit: $(git log --oneline -1 2>/dev/null || echo 'none')\""
+        }]
+      }
+    ]
+  }
+}
