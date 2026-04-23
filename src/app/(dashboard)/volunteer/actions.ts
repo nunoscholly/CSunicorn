@@ -95,10 +95,14 @@ export async function commitToTaskAction(
     // Service-Role nur für diesen engen Schritt. Die Anwendungs-Logik
     // stellt sicher, dass genau "1 Slot -1" geschrieben wird.
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        // Keine Implementierungsdetails nach aussen tragen — der Name des
+        // Env-Vars gehört ins Log, nicht in die UI-Fehlermeldung.
+        console.error(
+            "commitToTaskAction: SUPABASE_SERVICE_ROLE_KEY fehlt in der Umgebung.",
+        );
         return {
             ok: false,
-            error:
-                "SUPABASE_SERVICE_ROLE_KEY ist nicht gesetzt. Eintrag in .env.local nötig.",
+            error: "Serverkonfiguration unvollständig. Bitte Admin kontaktieren.",
         };
     }
 

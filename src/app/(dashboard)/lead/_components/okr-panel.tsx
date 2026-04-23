@@ -90,7 +90,7 @@ function OkrRow({
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-label={`${label}: ${progressPct} Prozent`}
-                className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#222]"
+                className="mt-1 h-1.5 overflow-hidden rounded-full bg-track"
             >
                 <div
                     className={`h-full ${barColor}`}

@@ -219,9 +219,11 @@ export function BatchTaskUpload() {
     }
 
     function handleImport() {
-        const rowsToInsert = validations
+        // .parsed ist dank des Filters nie undefined, daher reicht das
+        // Non-Null-Assert — der zusätzliche Cast wäre redundant.
+        const rowsToInsert: ParsedTaskRow[] = validations
             .filter((v) => v.parsed)
-            .map((v) => v.parsed!) as ParsedTaskRow[];
+            .map((v) => v.parsed!);
 
         startTransition(async () => {
             const res = await bulkInsertTasksAction(rowsToInsert);

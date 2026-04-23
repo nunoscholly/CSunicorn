@@ -51,8 +51,10 @@ export function LoginForm() {
 
             // router.replace statt push: nach Login soll der Back-Button nicht
             // auf die Login-Seite führen. refresh() zieht die neuen Server-
-            // Component-Daten mit den frischen Session-Cookies.
-            router.replace(ROLE_HOME[role]);
+            // Component-Daten mit den frischen Session-Cookies. Fallback auf
+            // /volunteer, falls das Profil eine unbekannte Rolle liefert —
+            // so landet niemand auf /undefined.
+            router.replace(ROLE_HOME[role] ?? "/volunteer");
             router.refresh();
         });
     }

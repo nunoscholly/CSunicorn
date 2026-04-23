@@ -61,6 +61,7 @@ Two trapezium shapes side by side: START (filled) + CREW (outlined/tinted).
 | Name | Hex | Use |
 |---|---|---|
 | Surface | `#1A1A1A` | Cards and containers on dark backgrounds |
+| Track | `#222222` | Progress-bar tracks, subtle dividers between rows |
 | White | `#FFFFFF` | Text on dark backgrounds |
 | Concrete | `#555555` | Muted text, borders, dividers |
 
@@ -168,6 +169,7 @@ export default {
         "signal-yellow-hover": "#e0b800",
         "construction-black": "#111111",
         "surface": "#1A1A1A",
+        "track": "#222222",
         "concrete": "#555555",
         "urgent-red": "#FF4D4D",
         "success-green": "#3ECF8E",

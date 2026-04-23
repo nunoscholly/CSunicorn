@@ -71,7 +71,7 @@ export function TeamRoster({
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-label={`Team-Besetzung: ${coveragePct} Prozent`}
-                className="mb-5 h-1.5 overflow-hidden rounded-full bg-[#222]"
+                className="mb-5 h-1.5 overflow-hidden rounded-full bg-track"
             >
                 <div
                     className={`h-full ${barColor}`}

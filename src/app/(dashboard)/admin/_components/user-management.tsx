@@ -137,7 +137,7 @@ export function UserManagement({ profiles }: UserManagementProps) {
                                     colSpan={6}
                                     className="px-3 py-6 text-center text-foreground/50"
                                 >
-                                    Noch keine User im System. Leg den ersten Account über "User anlegen" an.
+                                    Noch keine User im System. Leg den ersten Account über „User anlegen“ an.
                                 </td>
                             </tr>
                         ) : (
@@ -373,7 +373,10 @@ function EditRow({
     onCancel: () => void;
     onSubmit: (patch: { name: string; role: UserRole; phone: string }) => void;
 }) {
-    const [name, setName] = useState(profile.name);
+    // profile.name darf null sein (Seed ohne Namen, frisch angelegte User) —
+    // ohne ?? "" würde React den Input als uncontrolled starten und beim ersten
+    // Tastendruck "controlled → uncontrolled"-Warnung loggen.
+    const [name, setName] = useState(profile.name ?? "");
     const [role, setRole] = useState<UserRole>(profile.role);
     const [phone, setPhone] = useState(profile.phone ?? "");
 

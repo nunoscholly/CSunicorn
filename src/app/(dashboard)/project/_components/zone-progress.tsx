@@ -57,7 +57,7 @@ function ProgressRow({ row }: { row: ZoneProgress }) {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-label={`Fortschritt ${row.zone}: ${row.percentage} Prozent`}
-                className="h-1.5 overflow-hidden rounded-full bg-[#222]"
+                className="h-1.5 overflow-hidden rounded-full bg-track"
             >
                 <div
                     className={`h-full ${barColor}`}

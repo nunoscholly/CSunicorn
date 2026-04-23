@@ -78,30 +78,27 @@ export default async function VolunteerPage() {
     // raus: ohne diese Felder taugt die Karte weder für die Sektor-Karte noch
     // für den "ohne feste Zeit"-Platzhalter. Wir zeigen nur Tasks, die
     // Volunteers wirklich übernehmen können.
-    const [tasksRes, assignmentsRes, myAssignmentsRes, teamsRes] =
-        await Promise.all([
-            supabase
-                .from("tasks")
-                .select(
-                    "id, zone, task_name, shift_start, shift_end, description, people_needed, slots_remaining, priority, status",
-                )
-                .not("zone", "is", null)
-                .not("shift_start", "is", null),
-            supabase
-                .from("assignments")
-                .select("task_id, status"),
-            supabase
-                .from("assignments")
-                .select("id, task_id, team_id, status, created_at")
-                .eq("volunteer_id", user.id)
-                .eq("status", "assigned")
-                .order("created_at", { ascending: false })
-                .limit(1),
-            supabase.from("teams").select("id, name, zone, lead_id"),
-        ]);
+    // Die Sektor-Auslastung wird aus tasks.slots_remaining berechnet, daher
+    // brauchen wir die allgemeine assignments-Tabelle hier nicht.
+    const [tasksRes, myAssignmentsRes, teamsRes] = await Promise.all([
+        supabase
+            .from("tasks")
+            .select(
+                "id, zone, task_name, shift_start, shift_end, description, people_needed, slots_remaining, priority, status",
+            )
+            .not("zone", "is", null)
+            .not("shift_start", "is", null),
+        supabase
+            .from("assignments")
+            .select("id, task_id, team_id, status, created_at")
+            .eq("volunteer_id", user.id)
+            .eq("status", "assigned")
+            .order("created_at", { ascending: false })
+            .limit(1),
+        supabase.from("teams").select("id, name, zone, lead_id"),
+    ]);
 
     const tasks = (tasksRes.data ?? []) as TaskRow[];
-    const assignments = assignmentsRes.data ?? [];
     const myActiveAssignment = (myAssignmentsRes.data ?? [])[0] as
         | { id: string; task_id: string; team_id: string | null; status: string }
         | undefined;
@@ -190,11 +187,6 @@ export default async function VolunteerPage() {
             people_needed: t.people_needed,
             priority: t.priority,
         }));
-
-    // Für Auswertung weiter unten: wie viele Assignments laufen noch aktiv?
-    // (Wird in der Sektor-Berechnung aktuell nicht separat genutzt — steht
-    // bereit, falls wir später noch drill-downs brauchen.)
-    void assignments;
 
     const volunteerHasActiveTask = activeTask !== null;
 
