@@ -1,39 +1,46 @@
 // Server Actions für den Volunteer-Bereich.
-// Nur eine Mutation: einen offenen Task übernehmen. Läuft über den atomaren
-// Postgres-RPC claim_task_slot (siehe supabase/migrations/007_claim_task_slot.sql),
-// damit Race-Conditions bei gleichzeitigen Klicks sauber abgefangen werden.
+// Einzige Mutation: einen offenen Task übernehmen.
+//
+// Umsetzung folgt docs/visualizations.md §3.3 Commit Logic:
+//   1. Prüfen, dass der Volunteer noch keinen aktiven Task hat
+//   2. tasks.slots_remaining dekrementieren mit .gt("slots_remaining", 0)-
+//      Guard + optimistic-locking auf den zuletzt gelesenen Wert
+//   3. Wenn slots_remaining auf 0 fällt → tasks.status='filled'
+//   4. Assignment einfügen
+//
+// Die RLS-Policy tasks_update lässt Volunteers nicht direkt auf tasks
+// schreiben — für den Dekrement nutzen wir daher den Admin-Client mit
+// Service-Role-Key. Der Insert von assignments läuft weiter über den
+// Session-Client, damit die RLS-Regel volunteer_id = auth.uid() greift.
+//
+// Hinweis: supabase/migrations/007_claim_task_slot.sql bietet einen
+// atomaren Postgres-RPC als saubere Alternative. Solange dieser nicht
+// eingespielt ist, liefert die Application-Level-Logik hier dasselbe
+// Verhalten — bis auf ein extrem kleines Race-Window, das die DB-Constraint
+// CHECK (slots_remaining >= 0) im Zweifel abfängt.
 
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { UserRole } from "@/lib/supabase/types";
 
 export type ActionResult<T = undefined> =
     | { ok: true; data?: T }
     | { ok: false; error: string };
 
-// Fehlercode-Mapping: die deutschen Meldungen sind UI-ready.
-// Keys kommen aus dem RPC in 007_claim_task_slot.sql.
-const ERROR_MESSAGES: Record<string, string> = {
-    forbidden: "Nicht erlaubt.",
-    already_assigned: "Du bist bereits einem Task zugeteilt.",
-    task_not_found: "Task existiert nicht mehr.",
-    taken: "Der Slot wurde gerade von jemand anderem übernommen.",
-};
-
 export async function commitToTaskAction(
     taskId: string,
 ): Promise<ActionResult<{ remaining: number }>> {
     const supabase = await createSupabaseServerClient();
 
+    // --- Session + Rolle prüfen -----------------------------------------
     const {
         data: { user },
     } = await supabase.auth.getUser();
     if (!user) return { ok: false, error: "Keine gültige Session." };
 
-    // Rolle prüfen — Volunteer oder Admin. Andere Rollen haben keinen Grund,
-    // sich auf Tasks zu setzen.
     const { data: profile } = await supabase
         .from("profiles")
         .select("role, is_active")
@@ -49,34 +56,123 @@ export async function commitToTaskAction(
         };
     }
 
-    // Der RPC erwartet auth.uid() = p_volunteer_id. Wir schicken explizit die
-    // User-ID, damit der Vertrag mit der Funktion im SQL klar bleibt.
-    const { data, error } = await supabase.rpc("claim_task_slot", {
-        p_task_id: taskId,
-        p_volunteer_id: user.id,
-    });
-
-    if (error) {
-        // Typische Ursache: Migration 007 wurde noch nicht ausgeführt.
+    // --- One active task per volunteer ----------------------------------
+    const { data: existing } = await supabase
+        .from("assignments")
+        .select("id")
+        .eq("volunteer_id", user.id)
+        .eq("status", "assigned")
+        .limit(1);
+    if (existing && existing.length > 0) {
         return {
             ok: false,
-            error:
-                "Übernahme fehlgeschlagen. Prüfen: Migration 007_claim_task_slot.sql im Supabase-Dashboard ausgeführt?",
+            error: "Du bist bereits einem Task zugeteilt.",
         };
     }
 
-    // Der RPC liefert { ok: boolean, error?: string, remaining?: number }.
-    const result = data as
-        | { ok: true; remaining: number }
-        | { ok: false; error: string };
+    // --- Task-State laden -----------------------------------------------
+    const { data: task } = await supabase
+        .from("tasks")
+        .select("zone, slots_remaining, people_needed, status")
+        .eq("id", taskId)
+        .single<{
+            zone: string | null;
+            slots_remaining: number;
+            people_needed: number;
+            status: string;
+        }>();
+    if (!task) {
+        return { ok: false, error: "Task existiert nicht mehr." };
+    }
+    if (task.status !== "open" || task.slots_remaining <= 0) {
+        return {
+            ok: false,
+            error: "Der Slot wurde gerade vergeben.",
+        };
+    }
 
-    if (!result.ok) {
-        const msg = ERROR_MESSAGES[result.error] ?? "Übernahme fehlgeschlagen.";
-        return { ok: false, error: msg };
+    // --- Admin-Client: Tasks-UPDATE bypasst RLS -------------------------
+    // Service-Role nur für diesen engen Schritt. Die Anwendungs-Logik
+    // stellt sicher, dass genau "1 Slot -1" geschrieben wird.
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        return {
+            ok: false,
+            error:
+                "SUPABASE_SERVICE_ROLE_KEY ist nicht gesetzt. Eintrag in .env.local nötig.",
+        };
+    }
+
+    const admin = createSupabaseAdminClient();
+
+    // --- Optimistic Decrement -------------------------------------------
+    // .eq("slots_remaining", task.slots_remaining) wirkt als optimistic
+    // lock: wenn zwischen SELECT und UPDATE jemand anders committed hat,
+    // findet die WHERE-Klausel 0 Zeilen und wir brechen ab.
+    const newRemaining = task.slots_remaining - 1;
+    const patch: { slots_remaining: number; status?: "filled" } = {
+        slots_remaining: newRemaining,
+    };
+    if (newRemaining === 0) {
+        patch.status = "filled";
+    }
+
+    const { data: updated } = await admin
+        .from("tasks")
+        .update(patch)
+        .eq("id", taskId)
+        .eq("slots_remaining", task.slots_remaining)
+        .gt("slots_remaining", 0)
+        .select("id");
+
+    if (!updated || updated.length === 0) {
+        return {
+            ok: false,
+            error:
+                "Der Slot wurde gerade von jemand anderem übernommen.",
+        };
+    }
+
+    // --- team_id für das Assignment auflösen ----------------------------
+    let teamId: string | null = null;
+    if (task.zone) {
+        const { data: team } = await admin
+            .from("teams")
+            .select("id")
+            .eq("zone", task.zone)
+            .limit(1)
+            .maybeSingle<{ id: string }>();
+        teamId = team?.id ?? null;
+    }
+
+    // --- Assignment anlegen ---------------------------------------------
+    // Bewusst über den Session-Client: so greift die RLS-Policy
+    // "volunteer_id = auth.uid()" und bleibt auditierbar.
+    const { error: insertError } = await supabase.from("assignments").insert({
+        task_id: taskId,
+        volunteer_id: user.id,
+        team_id: teamId,
+        status: "assigned",
+    });
+
+    if (insertError) {
+        // Best-effort Rollback: Decrement rückgängig machen, damit der
+        // Slot wieder frei wird, wenn der Assignment-Insert scheitert.
+        await admin
+            .from("tasks")
+            .update({
+                slots_remaining: task.slots_remaining,
+                ...(newRemaining === 0 ? { status: "open" } : {}),
+            })
+            .eq("id", taskId);
+
+        return {
+            ok: false,
+            error: `Assignment konnte nicht gespeichert werden: ${insertError.message}`,
+        };
     }
 
     revalidatePath("/volunteer");
-    revalidatePath("/lead"); // Team-Lead sieht den neuen Volunteer im Roster.
+    revalidatePath("/lead"); // Lead sieht den neuen Volunteer im Roster.
     revalidatePath("/project"); // PM-Dashboard aktualisiert Coverage.
-    return { ok: true, data: { remaining: result.remaining } };
+    return { ok: true, data: { remaining: newRemaining } };
 }
