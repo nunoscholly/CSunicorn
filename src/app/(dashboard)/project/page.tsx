@@ -29,23 +29,6 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
-// Feste 2h-Slots für den Forecast-Chart. 07:00–21:00 laut docs/visualizations.md §1.2.
-const FORECAST_SLOT_HOURS = [7, 9, 11, 13, 15, 17, 19, 21] as const;
-
-// Wenn eine Schicht während eines Slots aktiv ist, zählt jedes Assignment
-// als "anwesend" für diesen Slot. Der Slot-Mittelpunkt (Stunde + 1) reicht
-// als pragmatische Referenz — die Slots sind 2h breit.
-function isShiftActiveAt(
-    shiftStart: string | null,
-    shiftEnd: string | null,
-    slotMidpoint: Date,
-) {
-    if (!shiftStart || !shiftEnd) return false;
-    const start = new Date(shiftStart).getTime();
-    const end = new Date(shiftEnd).getTime();
-    const mid = slotMidpoint.getTime();
-    return start <= mid && mid < end;
-}
 
 export default async function ProjectPage() {
     const supabase = await createSupabaseServerClient();
@@ -94,7 +77,7 @@ export default async function ProjectPage() {
             ),
         supabase
             .from("forecasts")
-            .select("zone, shift_slot, predicted_count, generated_at"),
+            .select("zone, day, predicted_people, status, tasks_active, generated_at"),
         supabase
             .from("profiles")
             .select("id, name, role, is_active")
@@ -167,10 +150,9 @@ export default async function ProjectPage() {
         return { zone: zone as Zone, completed, total, percentage };
     });
 
-    // --- Forecast-Chart (§1.2) -------------------------------------------
-    // Pro Slot: actual = Summe aller Assignments, deren Schicht den Slot
-    // überschneidet. predicted = Summe der predicted_count aus forecasts
-    // für denselben shift_slot über alle Zonen.
+    // --- Forecast-Chart (§1.2) — tagesbasiert ab Migration 010 ----------
+    // Pro Tag: predicted = Summe predicted_people über alle Zonen.
+    // actual = Summe der Assignments für Tasks dieses Tages.
     const assignmentByTask = new Map<string, number>();
     for (const a of assignments) {
         if (a.status !== "assigned") continue;
@@ -180,29 +162,39 @@ export default async function ProjectPage() {
         );
     }
 
-    const now = new Date();
-    const forecastSlots: ForecastSlot[] = FORECAST_SLOT_HOURS.map((hour) => {
-        const slotDate = new Date(todayStart);
-        slotDate.setHours(hour + 1, 0, 0, 0); // Mittelpunkt des 2h-Slots.
-        const label = `${String(hour).padStart(2, "0")}:00`;
+    // Alle vorhandenen Tage aus den Forecast-Daten extrahieren.
+    const forecastDays = Array.from(
+        new Set(forecasts.map((f) => f.day).filter((d): d is number => d != null)),
+    ).sort((a, b) => a - b);
 
+    const forecastSlots: ForecastSlot[] = forecastDays.map((day) => {
+        const dayForecasts = forecasts.filter((f) => f.day === day);
+        const predicted = dayForecasts.reduce(
+            (sum, f) => sum + (f.predicted_people ?? 0),
+            0,
+        );
+
+        // Actual: Assignments für Tasks, deren day-Feld oder shift_start
+        // auf diesen Build-Week-Tag fallen.
         let actual = 0;
         for (const t of tasks) {
-            if (isShiftActiveAt(t.shift_start, t.shift_end, slotDate)) {
+            // Prüfe ob der Task zu diesem Tag gehört (day-Feld oder heutiger Tag)
+            const taskDay = (t as Record<string, unknown>).day as number | null;
+            const matchesDay = taskDay === day;
+            // Fallback: wenn kein day-Feld, nutze shift_start am heutigen Datum
+            const matchesToday =
+                !taskDay && day === 1 && t.shift_start &&
+                new Date(t.shift_start) >= todayStart &&
+                new Date(t.shift_start) < todayEnd;
+            if (matchesDay || matchesToday) {
                 actual += assignmentByTask.get(t.id) ?? 0;
             }
         }
 
-        const predicted = forecasts
-            .filter((f) => f.shift_slot === label)
-            .reduce((sum, f) => sum + (f.predicted_count ?? 0), 0);
+        // Erste 4 Tage gelten als "Vergangenheit" in den Demo-Daten
+        const isFuture = day > 4;
 
-        return {
-            label,
-            actual,
-            predicted,
-            isFuture: slotDate.getTime() > now.getTime(),
-        };
+        return { label: `Tag ${day}`, actual, predicted, isFuture };
     });
 
     // --- Leads für Notification-Composer ---------------------------------

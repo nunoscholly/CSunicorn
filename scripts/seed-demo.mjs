@@ -973,9 +973,9 @@ const DEMO_NOTIFICATIONS = [
 ];
 
 // ============================================================
-// Forecasts (7 Zonen x 8 Slots = 56 Rows)
+// Forecasts (7 Zonen x 9 Tage = 63 Rows, neues Schema ab Migration 010)
 // ============================================================
-const ZONES = [
+const FORECAST_ZONES = [
   "Stage A",
   "Stage B",
   "Catering",
@@ -984,35 +984,28 @@ const ZONES = [
   "AV/Tech",
   "Main Hall",
 ];
-const SLOTS = [
-  "07:00",
-  "09:00",
-  "11:00",
-  "13:00",
-  "15:00",
-  "17:00",
-  "19:00",
-  "21:00",
-];
-// Vorhergesagte Werte pro Zone — passend zum hoeheren Staffing-Level
-const FORECAST_VALUES = {
-  "Stage A": [3, 5, 5, 4, 4, 5, 4, 2],
-  "Stage B": [4, 5, 5, 4, 4, 3, 3, 2],
-  Catering: [4, 5, 6, 6, 3, 4, 4, 2],
-  Entrance: [3, 4, 3, 3, 3, 3, 2, 1],
-  Backstage: [2, 3, 3, 3, 3, 3, 2, 1],
-  "AV/Tech": [3, 4, 4, 3, 3, 3, 3, 2],
-  "Main Hall": [5, 8, 7, 6, 5, 5, 4, 2],
+
+// Vorhergesagte Personenzahl pro Zone fuer Tag 1–9 der Build-Week
+const FORECAST_BY_DAY = {
+  "Stage A":   [3, 4, 5, 5, 4, 4, 5, 4, 2],
+  "Stage B":   [4, 5, 5, 5, 4, 4, 3, 3, 2],
+  Catering:    [4, 5, 6, 6, 6, 5, 4, 4, 2],
+  Entrance:    [3, 4, 3, 3, 3, 3, 3, 2, 1],
+  Backstage:   [2, 3, 3, 3, 3, 3, 3, 2, 1],
+  "AV/Tech":   [3, 4, 4, 4, 3, 3, 3, 3, 2],
+  "Main Hall": [5, 8, 7, 7, 6, 5, 5, 4, 2],
 };
 
 const DEMO_FORECASTS = [];
-for (const zone of ZONES) {
-  const values = FORECAST_VALUES[zone];
-  for (let i = 0; i < SLOTS.length; i++) {
+for (const zone of FORECAST_ZONES) {
+  const values = FORECAST_BY_DAY[zone];
+  for (let day = 1; day <= 9; day++) {
     DEMO_FORECASTS.push({
       zone,
-      shift_slot: SLOTS[i],
-      predicted_count: values[i],
+      day,
+      predicted_people: values[day - 1],
+      status: day <= 4 ? "confirmed" : "pending",
+      tasks_active: Math.max(1, Math.floor(values[day - 1] / 2)),
     });
   }
 }
@@ -1026,7 +1019,25 @@ async function main() {
   // Schritt 0: Cleanup — bestehende Demo-Daten loeschen
   console.log("Schritt 0: Bestehende Demo-Daten loeschen...");
 
-  // Auth-User loeschen (cascaded auf profiles)
+  // Reihenfolge: Erst abhaengige Daten loeschen, DANN auth.users (weil
+  // CASCADE created_by auf NULL setzt und wir die Tasks sonst nicht finden).
+
+  // Tasks loeschen: nach [DEMO]-Tag, bekannten Demo-UUIDs und created_by.
+  // Mehrere Strategien, weil Migration 013 den [DEMO]-Tag entfernt hat und
+  // CASCADE von auth.users das created_by auf NULL setzt.
+  await supabase.from("tasks").delete().like("task_name", "%[DEMO]");
+  const demoTaskIds = DEMO_TASKS.map((t) => t.id);
+  await supabase.from("tasks").delete().in("id", demoTaskIds);
+  await supabase.from("requests").delete().like("notes", "[DEMO]%");
+  await supabase
+    .from("notifications")
+    .delete()
+    .like("message", "[DEMO]%");
+  await supabase.from("forecasts").delete().not("id", "is", null);
+  await supabase.from("teams").delete().like("name", "[DEMO]%");
+  console.log("  Demo-Daten (Tasks/Requests/Notifications/Forecasts/Teams) entfernt.");
+
+  // Auth-User loeschen (cascaded auf profiles + assignments)
   const { data: existingUsers } =
     await supabase.auth.admin.listUsers({ perPage: 1000 });
   const demoUsers = (existingUsers?.users || []).filter((u) =>
@@ -1035,18 +1046,7 @@ async function main() {
   for (const u of demoUsers) {
     await supabase.auth.admin.deleteUser(u.id);
   }
-  console.log(`  ${demoUsers.length} alte Auth-User entfernt.`);
-
-  // Verwaiste Demo-Daten bereinigen
-  await supabase.from("tasks").delete().like("task_name", "%[DEMO]");
-  await supabase.from("requests").delete().like("notes", "[DEMO]%");
-  await supabase
-    .from("notifications")
-    .delete()
-    .like("message", "[DEMO]%");
-  await supabase.from("forecasts").delete().gte("id", "00000000-0000-0000-0000-000000000000");
-  await supabase.from("teams").delete().like("name", "[DEMO]%");
-  console.log("  Verwaiste Tasks/Requests/Notifications/Forecasts/Teams entfernt.\n");
+  console.log(`  ${demoUsers.length} alte Auth-User entfernt.\n`);
 
   // Schritt 1: Demo-User ueber Admin-API erstellen
   console.log("Schritt 1: Demo-User erstellen...");

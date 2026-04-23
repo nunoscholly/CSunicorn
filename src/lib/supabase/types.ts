@@ -47,6 +47,19 @@ export type Task = {
     created_at: string;
 };
 
+// Forecast-Typ: ab Migration 010 tagesbasiert statt Slot-basiert.
+export type ForecastStatus = "pending" | "confirmed" | "outdated";
+
+export type Forecast = {
+    id: string;
+    zone: string;
+    day: number | null;
+    predicted_people: number;
+    status: ForecastStatus;
+    tasks_active: number;
+    generated_at: string;
+};
+
 // Das config-Table ist ein schlichter Key-Value-Store. Wir schlüsseln die
 // bekannten Keys hier explizit auf, damit Typos im Code auffallen.
 export type ConfigKey = "venue_map_path";
