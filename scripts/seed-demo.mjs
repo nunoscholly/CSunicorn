@@ -1,13 +1,13 @@
 /**
- * Seed-Skript: Demo-Daten ueber die offizielle Supabase Admin-API anlegen.
+ * Seed-Skript: Demo-Daten über die offizielle Supabase Admin-API anlegen.
  *
  * Erstellt alle Demo-User via supabase.auth.admin.createUser() statt per
- * direktem INSERT INTO auth.users — das ist der einzige zuverlaessige Weg,
- * login-faehige Accounts auf gehosteten Supabase-Instanzen zu erzeugen.
+ * direktem INSERT INTO auth.users — das ist der einzige zuverlässige Weg,
+ * login-fähige Accounts auf gehosteten Supabase-Instanzen zu erzeugen.
  *
- * Ausfuehren:  npm run seed:demo
+ * Ausführen:  npm run seed:demo
  * Voraussetzung: NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY
- *                muessen in .env.local gesetzt sein.
+ *                müssen in .env.local gesetzt sein.
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -15,7 +15,7 @@ import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
-// .env.local laden (Node 22 --env-file unterstuetzt keine .env.local,
+// .env.local laden (Node 22 --env-file unterstützt keine .env.local,
 // daher manuell parsen)
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const envPath = resolve(__dirname, "..", ".env.local");
@@ -32,7 +32,7 @@ try {
     if (!process.env[key]) process.env[key] = value;
   }
 } catch {
-  // .env.local nicht gefunden — Environment-Variablen muessen anders gesetzt sein
+  // .env.local nicht gefunden — Environment-Variablen müssen anders gesetzt sein
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -40,7 +40,7 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error(
-    "Fehler: NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY muessen in .env.local gesetzt sein."
+    "Fehler: NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY müssen in .env.local gesetzt sein."
   );
   process.exit(1);
 }
@@ -56,7 +56,7 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 const DEMO_PASSWORD = "StartCrew123!";
 
 const DEMO_USERS = [
-  // Legacy-Demo-Admin: haelt die dokumentierten Login-Daten aus frueheren
+  // Legacy-Demo-Admin: hält die dokumentierten Login-Daten aus früheren
   // Wochen lebendig (admin@start.test / test123). Eigenes Passwort,
   // ansonsten identisch zum normalen Admin-Flow.
   {
@@ -276,7 +276,7 @@ const DEMO_TEAMS = [
 ];
 
 // ============================================================
-// Team-Zuordnung fuer Leads und Volunteers
+// Team-Zuordnung für Leads und Volunteers
 // ============================================================
 const TEAM_ASSIGNMENTS = {
   // Leads → ihr eigenes Team
@@ -318,7 +318,7 @@ const TEAM_ASSIGNMENTS = {
 };
 
 // ============================================================
-// Heutiges Datum fuer Shift-Timestamps
+// Heutiges Datum für Shift-Timestamps
 // ============================================================
 function todayAt(time) {
   const today = new Date().toISOString().slice(0, 10);
@@ -341,7 +341,7 @@ const DEMO_TASKS = [
     priority: "normal",
     status: "complete",
     description:
-      "Haupt-Traverse Stage A montieren und auf Zielhoehe ziehen.",
+      "Haupt-Traverse Stage A montieren und auf Zielhöhe ziehen.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
@@ -375,7 +375,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000011",
     zone: "Stage B",
-    task_name: "Buehne aufbauen",
+    task_name: "Bühne aufbauen",
     shift_start: todayAt("07:00"),
     shift_end: todayAt("11:00"),
     people_needed: 5,
@@ -383,7 +383,7 @@ const DEMO_TASKS = [
     priority: "normal",
     status: "complete",
     description:
-      "Modulbuehne Stage B stellen und Rueckwand montieren.",
+      "Modulbühne Stage B stellen und Rückwand montieren.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
@@ -397,7 +397,7 @@ const DEMO_TASKS = [
     priority: "warning",
     status: "open",
     description:
-      "Audio- und Netzkabel zur FoH ziehen und saubern abkleben.",
+      "Audio- und Netzkabel zur FoH ziehen und sauber abkleben.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
@@ -417,7 +417,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000021",
     zone: "Catering",
-    task_name: "Kueche vorbereiten",
+    task_name: "Küche vorbereiten",
     shift_start: todayAt("06:00"),
     shift_end: todayAt("09:00"),
     people_needed: 6,
@@ -479,7 +479,7 @@ const DEMO_TASKS = [
     priority: "warning",
     status: "open",
     description:
-      "Kuehlschraenke bestuecken, Getraenke nachliefern.",
+      "Kühlschränke bestücken, Getränke nachliefern.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
@@ -493,7 +493,7 @@ const DEMO_TASKS = [
     priority: "normal",
     status: "open",
     description:
-      "Sofa stellen, Getraenke, WLAN-Codes ausdrucken.",
+      "Sofa stellen, Getränke, WLAN-Codes ausdrucken.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   // AV/Tech
@@ -536,7 +536,7 @@ const DEMO_TASKS = [
     slots_remaining: 0,
     priority: "normal",
     status: "complete",
-    description: "480 Stuehle in 12 Reihen ausrichten.",
+    description: "480 Stühle in 12 Reihen ausrichten.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
@@ -550,13 +550,13 @@ const DEMO_TASKS = [
     priority: "warning",
     status: "open",
     description:
-      "Mittelgang-Teppich und Laeufer zu den Buehnenseiten.",
+      "Mittelgang-Teppich und Läufer zu den Bühnenseiten.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
     id: "00000000-0000-4000-a000-000000000063",
     zone: "Main Hall",
-    task_name: "Notausgaenge markieren",
+    task_name: "Notausgänge markieren",
     shift_start: todayAt("14:00"),
     shift_end: todayAt("15:00"),
     people_needed: 2,
@@ -573,7 +573,7 @@ const DEMO_TASKS = [
 // Assignments
 // ============================================================
 const DEMO_ASSIGNMENTS = [
-  // Stage A Task 2: 2 Plaetze besetzt
+  // Stage A Task 2: 2 Plätze besetzt
   {
     task_id: "00000000-0000-4000-a000-000000000002",
     volunteer_id: "00000000-0000-4000-8000-000000000020",
@@ -586,7 +586,7 @@ const DEMO_ASSIGNMENTS = [
     team_id: "00000000-0000-4000-9000-000000000001",
     status: "assigned",
   },
-  // Stage B Task 2: 2 Plaetze besetzt
+  // Stage B Task 2: 2 Plätze besetzt
   {
     task_id: "00000000-0000-4000-a000-000000000012",
     volunteer_id: "00000000-0000-4000-8000-000000000022",
@@ -599,7 +599,7 @@ const DEMO_ASSIGNMENTS = [
     team_id: "00000000-0000-4000-9000-000000000002",
     status: "assigned",
   },
-  // Backstage Task 1: 2 Plaetze besetzt
+  // Backstage Task 1: 2 Plätze besetzt
   {
     task_id: "00000000-0000-4000-a000-000000000041",
     volunteer_id: "00000000-0000-4000-8000-000000000024",
@@ -612,7 +612,7 @@ const DEMO_ASSIGNMENTS = [
     team_id: "00000000-0000-4000-9000-000000000005",
     status: "assigned",
   },
-  // AV/Tech Task 1: 2 Plaetze besetzt
+  // AV/Tech Task 1: 2 Plätze besetzt
   {
     task_id: "00000000-0000-4000-a000-000000000051",
     volunteer_id: "00000000-0000-4000-8000-000000000026",
@@ -625,7 +625,7 @@ const DEMO_ASSIGNMENTS = [
     team_id: "00000000-0000-4000-9000-000000000006",
     status: "assigned",
   },
-  // Main Hall Task 2: 2 Plaetze besetzt
+  // Main Hall Task 2: 2 Plätze besetzt
   {
     task_id: "00000000-0000-4000-a000-000000000062",
     volunteer_id: "00000000-0000-4000-8000-000000000028",
@@ -661,7 +661,7 @@ const DEMO_REQUESTS = [
     shift_start: todayAt("10:00"),
     shift_end: todayAt("13:00"),
     skills: null,
-    notes: "Eine Person zur Verstaerkung im Green Room.",
+    notes: "Eine Person zur Verstärkung im Green Room.",
     status: "partial",
   },
   {
@@ -671,7 +671,7 @@ const DEMO_REQUESTS = [
     shift_start: todayAt("09:00"),
     shift_end: todayAt("12:00"),
     skills: "Videotechnik",
-    notes: "Kamerafuehrung — gern mit Broadcast-Erfahrung.",
+    notes: "Kameraführung — gern mit Broadcast-Erfahrung.",
     status: "filled",
   },
   {
@@ -705,7 +705,7 @@ const DEMO_NOTIFICATIONS = [
     to_role: "lead",
     to_user_id: null,
     message:
-      "Kickoff-Meeting heute 16:00 im Buero. Kurz und knapp.",
+      "Kickoff-Meeting heute 16:00 im Büro. Kurz und knapp.",
     is_read: false,
   },
   {
@@ -713,7 +713,7 @@ const DEMO_NOTIFICATIONS = [
     to_role: null,
     to_user_id: "00000000-0000-4000-8000-000000000010",
     message:
-      "Stage A — zwei Personen noch fuer 17:00 gesucht.",
+      "Stage A — zwei Personen noch für 17:00 gesucht.",
     is_read: false,
   },
   {
@@ -721,7 +721,7 @@ const DEMO_NOTIFICATIONS = [
     to_role: null,
     to_user_id: "00000000-0000-4000-8000-000000000012",
     message:
-      "Danke fuer den reibungslosen Fruehservice!",
+      "Danke für den reibungslosen Frühservice!",
     is_read: true,
   },
   {
@@ -737,7 +737,7 @@ const DEMO_NOTIFICATIONS = [
     to_role: null,
     to_user_id: "00000000-0000-4000-8000-000000000014",
     message:
-      "Kuenstler X kommt 30min frueher. Bitte Backstage vorbereiten.",
+      "Künstler X kommt 30min früher. Bitte Backstage vorbereiten.",
     is_read: true,
   },
 ];
@@ -793,8 +793,8 @@ for (const zone of ZONES) {
 async function main() {
   console.log("=== START CREW Demo-Seed ===\n");
 
-  // Schritt 0: Cleanup — bestehende Demo-Daten loeschen
-  console.log("Schritt 0: Bestehende Demo-Daten loeschen...");
+  // Schritt 0: Cleanup — bestehende Demo-Daten löschen
+  console.log("Schritt 0: Bestehende Demo-Daten löschen...");
 
   // Auth-User sammeln: alle @startcrew.test und der Legacy-Admin admin@start.test.
   const { data: existingUsers } =
@@ -807,10 +807,10 @@ async function main() {
   });
   const demoUserIds = demoUsers.map((u) => u.id);
 
-  // Notifications VOR dem Auth-Cleanup saeubern: from_user_id wuerde sonst
+  // Notifications VOR dem Auth-Cleanup säubern: from_user_id würde sonst
   // per ON DELETE SET NULL auf NULL wandern und die Zuordnung zu Demo-Usern
-  // ginge verloren. Zusaetzlich als Fallback das alte [DEMO]-Textpattern
-  // mitlaufen lassen, falls aeltere Seed-Runs noch Reste hinterlassen haben.
+  // ginge verloren. Zusätzlich als Fallback das alte [DEMO]-Textpattern
+  // mitlaufen lassen, falls ältere Seed-Runs noch Reste hinterlassen haben.
   if (demoUserIds.length > 0) {
     await supabase
       .from("notifications")
@@ -823,14 +823,14 @@ async function main() {
   }
   await supabase.from("notifications").delete().like("message", "[DEMO]%");
 
-  // Auth-User loeschen (cascaded auf profiles)
+  // Auth-User löschen (cascaded auf profiles)
   for (const u of demoUsers) {
     await supabase.auth.admin.deleteUser(u.id);
   }
   console.log(`  ${demoUsers.length} alte Auth-User entfernt.`);
 
   // Verwaiste Demo-Daten bereinigen — bevorzugt per fester UUID, mit dem
-  // alten Textmuster als Fallback fuer historische Reseeds.
+  // alten Textmuster als Fallback für historische Reseeds.
   const demoTaskIds = DEMO_TASKS.map((t) => t.id);
   const demoTeamIds = DEMO_TEAMS.map((t) => t.id);
 
@@ -848,11 +848,11 @@ async function main() {
     "  Verwaiste Tasks/Requests/Notifications/Forecasts/Teams entfernt.\n"
   );
 
-  // Schritt 1: Demo-User ueber Admin-API erstellen
+  // Schritt 1: Demo-User über Admin-API erstellen
   console.log("Schritt 1: Demo-User erstellen...");
   for (const user of DEMO_USERS) {
     // Per-User-Passwort erlaubt abweichende Logins wie den Legacy-Admin
-    // (admin@start.test / test123), ohne den Rest des Seeds zu beruehren.
+    // (admin@start.test / test123), ohne den Rest des Seeds zu berühren.
     const password = user.password ?? DEMO_PASSWORD;
     const { data, error } = await supabase.auth.admin.createUser({
       email: user.email,
@@ -901,7 +901,7 @@ async function main() {
   }
   console.log("  ✓ Profile aktualisiert.");
 
-  // Schritt 4: Tasks einfuegen
+  // Schritt 4: Tasks einfügen
   console.log("\nSchritt 4: Tasks anlegen...");
   const { error: tasksError } = await supabase
     .from("tasks")
@@ -912,7 +912,7 @@ async function main() {
     console.log(`  ✓ ${DEMO_TASKS.length} Tasks angelegt.`);
   }
 
-  // Schritt 5: Assignments einfuegen
+  // Schritt 5: Assignments einfügen
   console.log("\nSchritt 5: Assignments anlegen...");
   const { error: assignError } = await supabase
     .from("assignments")
@@ -923,7 +923,7 @@ async function main() {
     console.log(`  ✓ ${DEMO_ASSIGNMENTS.length} Assignments angelegt.`);
   }
 
-  // Schritt 6: Requests einfuegen
+  // Schritt 6: Requests einfügen
   console.log("\nSchritt 6: Requests anlegen...");
   const { error: reqError } = await supabase
     .from("requests")
@@ -934,7 +934,7 @@ async function main() {
     console.log(`  ✓ ${DEMO_REQUESTS.length} Requests angelegt.`);
   }
 
-  // Schritt 7: Notifications einfuegen
+  // Schritt 7: Notifications einfügen
   console.log("\nSchritt 7: Notifications anlegen...");
   const { error: notifError } = await supabase
     .from("notifications")
@@ -945,7 +945,7 @@ async function main() {
     console.log(`  ✓ ${DEMO_NOTIFICATIONS.length} Notifications angelegt.`);
   }
 
-  // Schritt 8: Forecasts einfuegen
+  // Schritt 8: Forecasts einfügen
   console.log("\nSchritt 8: Forecasts anlegen...");
   const { error: forecastError } = await supabase
     .from("forecasts")
@@ -956,8 +956,8 @@ async function main() {
     console.log(`  ✓ ${DEMO_FORECASTS.length} Forecasts angelegt.`);
   }
 
-  // Schritt 9: Config-Platzhalter fuer die Venue-Map setzen. value=null
-  // sorgt dafuer, dass der Admin-Block explizit seinen Upload-Empty-State
+  // Schritt 9: Config-Platzhalter für die Venue-Map setzen. value=null
+  // sorgt dafür, dass der Admin-Block explizit seinen Upload-Empty-State
   // rendert, statt auf eine fehlende Config-Zeile zu laufen.
   console.log("\nSchritt 9: Config-Platzhalter venue_map_path setzen...");
   const { error: configError } = await supabase
@@ -972,7 +972,7 @@ async function main() {
   // Login-Zusammenfassung
   console.log("\n=== FERTIG ===\n");
   console.log(
-    "Passwort fuer Demo-Accounts: StartCrew123! (Ausnahme unten markiert).\n"
+    "Passwort für Demo-Accounts: StartCrew123! (Ausnahme unten markiert).\n"
   );
   console.log(
     "Rolle      | Email                            | Name             | Passwort"

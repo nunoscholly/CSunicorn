@@ -1,13 +1,13 @@
 -- ============================================================
 -- START CREW — Migration 010: Task-Namen auf Deutsch
 --
--- Uebersetzt die englischen task_name-Eintraege aus Migration 002
--- in deutsche Aequivalente (Kurs-Anforderung: Deutsches UI).
+-- Übersetzt die englischen task_name-Einträge aus Migration 002
+-- in deutsche Äquivalente (Kurs-Anforderung: Deutsches UI).
 -- Betrifft tasks.task_name, tasks.depends_on, historical_staffing.
--- Idempotent: zweiter Lauf aendert keine Zeilen mehr.
+-- Idempotent: zweiter Lauf ändert keine Zeilen mehr.
 -- ============================================================
 
--- 1) task_name in tasks: direkte 1:1-Uebersetzung.
+-- 1) task_name in tasks: direkte 1:1-Übersetzung.
 UPDATE tasks SET task_name = 'Material vom Campus transportieren' WHERE task_name = 'Transport things from campus';
 UPDATE tasks SET task_name = 'Material zum Campus transportieren' WHERE task_name = 'Transport things to campus';
 UPDATE tasks SET task_name = 'Container anliefern' WHERE task_name = 'Get containers Delivered';
@@ -55,7 +55,7 @@ UPDATE tasks SET task_name = 'Holz zuschneiden' WHERE task_name = 'Cut wood';
 UPDATE tasks SET task_name = 'Fahrdienst' WHERE task_name = 'Driving';
 
 -- 2) depends_on in tasks: REPLACE, da depends_on mehrere Task-Namen
---    per ' + ' verkettet enthaelt. Reihenfolge nach Laenge absteigend.
+--    per ' + ' verkettet enthält. Reihenfolge nach Länge absteigend.
 UPDATE tasks SET depends_on = REPLACE(depends_on, 'Transport things from campus', 'Material vom Campus transportieren') WHERE depends_on LIKE '%Transport things from campus%';
 UPDATE tasks SET depends_on = REPLACE(depends_on, 'Transport things to campus', 'Material zum Campus transportieren') WHERE depends_on LIKE '%Transport things to campus%';
 UPDATE tasks SET depends_on = REPLACE(depends_on, 'Get containers Delivered', 'Container anliefern') WHERE depends_on LIKE '%Get containers Delivered%';

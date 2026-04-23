@@ -323,16 +323,16 @@ INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, s
 -- Stage B (3 Tasks)
 INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, slots_remaining, priority, status, description, created_by) VALUES
     ('00000000-0000-4000-a000-000000000011',
-     'Stage B', 'Buehne aufbauen',
+     'Stage B', 'Bühne aufbauen',
      (CURRENT_DATE + time '07:00'), (CURRENT_DATE + time '11:00'),
      5, 0, 'normal', 'complete',
-     'Modulbuehne Stage B stellen und Rueckwand montieren.',
+     'Modulbühne Stage B stellen und Rückwand montieren.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000012',
      'Stage B', 'Kabel verlegen',
      (CURRENT_DATE + time '12:00'), (CURRENT_DATE + time '15:00'),
      4, 2, 'warning', 'open',
-     'Audio- und Netzkabel zur FoH ziehen und saubern abkleben.',
+     'Audio- und Netzkabel zur FoH ziehen und sauber abkleben.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000013',
      'Stage B', 'Moderatorenpult',
@@ -344,7 +344,7 @@ INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, s
 -- Catering (2 Tasks)
 INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, slots_remaining, priority, status, description, created_by) VALUES
     ('00000000-0000-4000-a000-000000000021',
-     'Catering', 'Kueche vorbereiten',
+     'Catering', 'Küche vorbereiten',
      (CURRENT_DATE + time '06:00'), (CURRENT_DATE + time '09:00'),
      6, 0, 'normal', 'complete',
      'Mise en place, Kaffeemaschinen anheizen.',
@@ -377,13 +377,13 @@ INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, s
      'Backstage', 'Catering Backstage',
      (CURRENT_DATE + time '10:00'), (CURRENT_DATE + time '13:00'),
      3, 1, 'warning', 'open',
-     'Kuehlschraenke bestuecken, Getraenke nachliefern.',
+     'Kühlschränke bestücken, Getränke nachliefern.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000042',
      'Backstage', 'Green Room einrichten',
      (CURRENT_DATE + time '13:00'), (CURRENT_DATE + time '15:00'),
      2, 2, 'normal', 'open',
-     'Sofa stellen, Getraenke, WLAN-Codes ausdrucken.',
+     'Sofa stellen, Getränke, WLAN-Codes ausdrucken.',
      '00000000-0000-4000-8000-000000000002');
 
 -- AV/Tech (2 Tasks)
@@ -407,16 +407,16 @@ INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, s
      'Main Hall', 'Stuhlreihen ausrichten',
      (CURRENT_DATE + time '08:00'), (CURRENT_DATE + time '11:00'),
      10, 0, 'normal', 'complete',
-     '480 Stuehle in 12 Reihen ausrichten.',
+     '480 Stühle in 12 Reihen ausrichten.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000062',
      'Main Hall', 'Teppich verlegen',
      (CURRENT_DATE + time '11:00'), (CURRENT_DATE + time '13:30'),
      5, 3, 'warning', 'open',
-     'Mittelgang-Teppich und Laeufer zu den Buehnenseiten.',
+     'Mittelgang-Teppich und Läufer zu den Bühnenseiten.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000063',
-     'Main Hall', 'Notausgaenge markieren',
+     'Main Hall', 'Notausgänge markieren',
      (CURRENT_DATE + time '14:00'), (CURRENT_DATE + time '15:00'),
      2, 2, 'critical', 'open',
      'Leuchtmarkierungen anbringen, Fluchtwege freihalten.',
@@ -426,39 +426,39 @@ INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, s
 -- SCHRITT 6 — Assignments (Volunteers auf Tasks)
 -- ============================================================
 -- Genau soviel Assignments wie (people_needed - slots_remaining)
--- pro Task, damit die Zahlen zu den Tasks-Eintraegen passen.
+-- pro Task, damit die Zahlen zu den Tasks-Einträgen passen.
 -- Alle Status='assigned' (aktive Zuweisung).
 
 INSERT INTO assignments (task_id, volunteer_id, team_id, status) VALUES
-    -- Stage A Task 2: 2 Plaetze besetzt
+    -- Stage A Task 2: 2 Plätze besetzt
     ('00000000-0000-4000-a000-000000000002',
      '00000000-0000-4000-8000-000000000020',
      '00000000-0000-4000-9000-000000000001', 'assigned'),
     ('00000000-0000-4000-a000-000000000002',
      '00000000-0000-4000-8000-000000000021',
      '00000000-0000-4000-9000-000000000001', 'assigned'),
-    -- Stage B Task 2: 2 Plaetze besetzt
+    -- Stage B Task 2: 2 Plätze besetzt
     ('00000000-0000-4000-a000-000000000012',
      '00000000-0000-4000-8000-000000000022',
      '00000000-0000-4000-9000-000000000002', 'assigned'),
     ('00000000-0000-4000-a000-000000000012',
      '00000000-0000-4000-8000-000000000023',
      '00000000-0000-4000-9000-000000000002', 'assigned'),
-    -- Backstage Task 1: 2 Plaetze besetzt
+    -- Backstage Task 1: 2 Plätze besetzt
     ('00000000-0000-4000-a000-000000000041',
      '00000000-0000-4000-8000-000000000024',
      '00000000-0000-4000-9000-000000000005', 'assigned'),
     ('00000000-0000-4000-a000-000000000041',
      '00000000-0000-4000-8000-000000000025',
      '00000000-0000-4000-9000-000000000005', 'assigned'),
-    -- AV/Tech Task 1: 2 Plaetze besetzt
+    -- AV/Tech Task 1: 2 Plätze besetzt
     ('00000000-0000-4000-a000-000000000051',
      '00000000-0000-4000-8000-000000000026',
      '00000000-0000-4000-9000-000000000006', 'assigned'),
     ('00000000-0000-4000-a000-000000000051',
      '00000000-0000-4000-8000-000000000027',
      '00000000-0000-4000-9000-000000000006', 'assigned'),
-    -- Main Hall Task 2: 2 Plaetze besetzt
+    -- Main Hall Task 2: 2 Plätze besetzt
     ('00000000-0000-4000-a000-000000000062',
      '00000000-0000-4000-8000-000000000028',
      '00000000-0000-4000-9000-000000000007', 'assigned'),
@@ -480,7 +480,7 @@ INSERT INTO requests (team_id, zone, people_needed, shift_start, shift_end, skil
      'open'),
     ('00000000-0000-4000-9000-000000000005', 'Backstage',
      1, (CURRENT_DATE + time '10:00'), (CURRENT_DATE + time '13:00'),
-     NULL, 'Eine Person zur Verstaerkung im Green Room.',
+     NULL, 'Eine Person zur Verstärkung im Green Room.',
      'partial'),
     ('00000000-0000-4000-9000-000000000006', 'AV/Tech',
      1, (CURRENT_DATE + time '09:00'), (CURRENT_DATE + time '12:00'),
@@ -502,22 +502,22 @@ INSERT INTO requests (team_id, zone, people_needed, shift_start, shift_end, skil
 
 INSERT INTO notifications (from_user_id, to_role, to_user_id, message, is_read) VALUES
     ('00000000-0000-4000-8000-000000000002', 'lead', NULL,
-     'Kickoff-Meeting heute 16:00 im Buero. Kurz und knapp.',
+     'Kickoff-Meeting heute 16:00 im Büro. Kurz und knapp.',
      false),
     ('00000000-0000-4000-8000-000000000003', NULL,
      '00000000-0000-4000-8000-000000000010',
-     'Stage A — zwei Personen noch fuer 17:00 gesucht.',
+     'Stage A — zwei Personen noch für 17:00 gesucht.',
      false),
     ('00000000-0000-4000-8000-000000000002', NULL,
      '00000000-0000-4000-8000-000000000012',
-     'Danke fuer den reibungslosen Fruehservice!',
+     'Danke für den reibungslosen Frühservice!',
      true),
     ('00000000-0000-4000-8000-000000000003', 'lead', NULL,
      'Wetterwarnung ab 18:00 — Equipment drinnen lagern.',
      false),
     ('00000000-0000-4000-8000-000000000002', NULL,
      '00000000-0000-4000-8000-000000000014',
-     'Kuenstler X kommt 30min frueher. Bitte Backstage vorbereiten.',
+     'Künstler X kommt 30min früher. Bitte Backstage vorbereiten.',
      true);
 
 -- ============================================================

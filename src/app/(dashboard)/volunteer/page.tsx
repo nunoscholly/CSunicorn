@@ -75,9 +75,9 @@ export default async function VolunteerPage() {
     // fragen wir weiter unten gezielt nur das Profil des zuständigen Leads
     // ab ("Lead phone only exposed after commit", user_profiles.md).
     // CSV-Batchimports ohne Zone oder Schichtfenster fallen vom Volunteer-Feed
-    // raus: ohne diese Felder taugt die Karte weder fuer die Sektor-Karte noch
-    // fuer den "ohne feste Zeit"-Platzhalter. Wir zeigen nur Tasks, die
-    // Volunteers wirklich uebernehmen koennen.
+    // raus: ohne diese Felder taugt die Karte weder für die Sektor-Karte noch
+    // für den "ohne feste Zeit"-Platzhalter. Wir zeigen nur Tasks, die
+    // Volunteers wirklich übernehmen können.
     const [tasksRes, assignmentsRes, myAssignmentsRes, teamsRes] =
         await Promise.all([
             supabase
