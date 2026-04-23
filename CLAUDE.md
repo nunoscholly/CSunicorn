@@ -66,6 +66,7 @@ Read these docs when you need detail — don't rely on memory alone.
 - docs/user_profiles.md — four user roles, permissions, route guards
 - docs/visualizations.md — page-by-page UI specs and data sources
 - docs/execution_plan.md — phased build roadmap
+- docs/ml_plan.md — ML forecast + scheduling spec (Phase 6 detail)
 - docs/idea_description.md — project context, grading criteria, team allocation
 
 ## Compact Instructions

@@ -1,0 +1,44 @@
+Task ,Roadblocking ,Day,2024 People,2024 Time (h),2025 People,2025 Time (h),2026 People,2026 Time
+Start of event,Unloading Trucks + Rent cars + Get containers Delivered,1,141,0.25,140,0,143,0
+Unloading Trucks,Sort boxes,1,55,4.5,60,4,70,3
+Rent cars,Transport things to campus,1,10,3,14,1,15,1
+Get containers Delivered,Assemble Lager,1,4,0.25,6,1,7,0.2
+Sort boxes,Assemble Lager,1,40,2,30,1.5,35,2
+Transport things from campus,Assemble Lager,1,10,6,8,10,8,8
+Set up cars for speakers,Start of showday,1,6,2,2,6,4,4
+Assemble Lager,Hang motors + Prep Wood,1,15,4,20,5,17,4
+Hang motors,Assemble Traverse + Build scaffolding,2,25,4,20,6,22,4
+Prep Wood,Assemble Traverse + Build scaffolding,2,28,2,12,1,17,1
+Cut wood,Build Booths + Build Coffee points,2,8,6,4,8,4,8
+Build Booths,Move wood into hall,3,49,6,8,20,10,15
+Build Coffee points,Move wood into hall,3,28,6,4,12,10,13
+Move wood into hall,Hang printables,5,31,2,16,4.5,29,1.5
+Assemble Traverse,Hang Traverse Low,2,56,4,43,5,57,4
+Hang Traverse Low,Cable management,2,15,2,12,2,16,2
+Cable management,Rig lights,3,82,3,69,3,83,2.5
+Rig lights,Hang Traverse High + Hang screens & speakers,4,69,3,67,5,67,3
+Hang Traverse High,Move wood into hall,4,15,1,16,1,16,0.5
+Build scaffolding,Hang screens & speakers,4,55,5.5,41,7,37,6
+Hang screens & speakers,Test Sound and Audio,5,22,7,32,6,23,7
+Test Sound and Audio,Test Visuals ,5,8,3,10,4,6,6
+Test Visuals ,Final Saftey checks ,5,4,1,4,1,3,1
+Hang printables,Add Furniture ,5,27,6.5,34,5.5,30,2
+Final Saftey checks ,Start of showday,5,28,2,32,2,31,1.5
+Start of showday,Driving + Stakeholders management + Service points + Stage Sessions,6,600,0.25,500,0.25,600,0
+Driving,End of Showday,7,23,16,20,16,25,16
+Stakeholders management,End of Showday,7,44,16,28,16,47,13
+Service points,End of Showday,7,321,16,240,16,270,16
+Stage Sessions,End of Showday,7,39,16,40,16,41,13
+End of Showday,Take down furniture + Return stuff to campus,7,600,.25,500,0.25,600,0
+Take down furniture ,Take down printables ,8,80,4,73,3,70,3
+Take down printables ,Take down wood,8,43,2,45,2,46,1
+Take down wood,Take down traverse low,8,81,3,60,2,64,2.5
+Take down traverse low,Remove lights & cables,8,15,2,12,2,13,1.5
+Remove lights & cables,Dissassemble traversen,8,40,3,37,2.5,51,3
+Dissassemble traversen,Take down motors,9,56,3.5,81,2,73,3
+Take down motors,Load containers + Load trucks ,9,14,2,12,2,13,2
+Return stuff to campus,Load containers + Drive cars back,9,22,6,16,8,15,6
+Load containers,Drive cars back,9,62,8,54,10,75,6
+Load trucks ,End of event,9,34,8,38,7,50,6.5
+Drive cars back,End of event,9,10,2,12,2,16,2
+End of event,End of event,9,141,.5 ,140,1,136,1

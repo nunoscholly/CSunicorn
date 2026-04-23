@@ -12,6 +12,8 @@
 
 ## Allowed Libraries
 
+### Taught in course (W2–W11 lectures + assignments)
+
 ```python
 import numpy as np
 import pandas as pd
@@ -22,16 +24,37 @@ from supabase import create_client
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler, LabelEncoder
+from sklearn.dummy import DummyClassifier
 from sklearn.metrics import (
     ConfusionMatrixDisplay, classification_report,
-    accuracy_score, precision_score, recall_score, f1_score
+    accuracy_score, precision_score, recall_score, f1_score,
+    precision_recall_fscore_support
 )
 from functools import reduce
 ```
 
-Use exactly these import aliases. No other libraries.
+Sources for additions vs. original list:
+- `LogisticRegression` — used in W10-0 (fruit classifier), W10-2 (text classifier), W11 (binary classification)
+- `StandardScaler` — used in W11 (apple/banana gradient descent example)
+- `RobustScaler` — required in Assignment 11 Task 2
+- `LabelEncoder` — used in W10-2 (text classification), W11 (binary classification)
+- `DummyClassifier` — used in W10-0 and W10-2 as baseline comparisons
+- `precision_recall_fscore_support` — required in Assignment 10 Task 1.4
+
+### Beyond course scope — use only with documentation
+
+The following are NOT taught in the course but may be needed for the project.
+Every use MUST be accompanied by a German comment block explaining what it does and
+why we chose it. The comment should be detailed enough that a reviewer sees we
+understood it, not just copy-pasted.
+
+```python
+# Nichts hier bisher — bei Bedarf ergänzen und Grund dokumentieren.
+```
+
+Use exactly these import aliases. No other libraries beyond what is listed above.
 
 ---
 
@@ -78,11 +101,39 @@ Use exactly these import aliases. No other libraries.
 - `plt.xlabel()`, `plt.ylabel()`, `plt.title()`, `plt.legend()`, `plt.show()`
 
 ### W10–W11 — Machine Learning
-- `train_test_split(test_size=0.30, random_state=42)`
-- KNN, Decision Tree, Linear Regression (fit/predict)
-- `MinMaxScaler` (fit_transform / transform)
+
+**W10-0 (Lecture):** KNN classification (fruits dataset), `MinMaxScaler`, `ConfusionMatrixDisplay`,
+`classification_report`, `DummyClassifier` as baseline, decision boundary visualization,
+`LogisticRegression` and `LinearSVC` shown as alternatives.
+
+**W10-1 (Lecture):** KNN on digits dataset, `KFold` cross-validation, `cross_val_score`,
+hyperparameter tuning (loop over k values), comparison of multiple classifiers
+(SVC, GaussianNB, LogisticRegression, MLPClassifier — shown for comparison, not all allowed).
+
+**W10-2 (Lecture):** Text classification with `TfidfVectorizer`, `MultinomialNB`, `LabelEncoder`,
+multiple classifier comparison, `DummyClassifier` strategies.
+
+**W11 (Lecture):** Manual gradient descent for binary classification (sigmoid, linear model,
+MSE loss, partial derivatives, learning rate). `StandardScaler`, `LabelEncoder`,
+train/val/test split pattern. Then same task with sklearn `LinearRegression` and
+`LogisticRegression` to show equivalence.
+
+**Assignment 10:** IRIS classification, manual KNN implementation (euclidean distance),
+`train_test_split` with 70/30, `accuracy_score`, `precision_recall_fscore_support`,
+`classification_report`.
+
+**Assignment 11:** 80/10/10 train/val/test split, `RobustScaler`, fit 5+ different classifiers,
+evaluate with accuracy/precision/recall/F1 on train and validation, report best on test set.
+
+**Concepts covered:**
+- `train_test_split(test_size=0.30, random_state=42)` — also 75/25 and 80/10/10 splits shown
+- KNN, Decision Tree, Linear Regression, Logistic Regression (fit/predict)
+- `MinMaxScaler`, `StandardScaler`, `RobustScaler` (fit_transform / transform)
+- `LabelEncoder` for string-to-int label encoding
+- `DummyClassifier` for baseline comparison
 - Confusion matrix, classification report, accuracy/precision/recall/F1
 - Underfitting vs. overfitting (conceptual)
+- Train / validation / test split pattern (W11, Assignment 11)
 
 ---
 
@@ -122,7 +173,8 @@ Use exactly these import aliases. No other libraries.
 - Hyperparameter tuning (GridSearchCV, RandomizedSearchCV)
 - Pipelines (`sklearn.pipeline`)
 - PolynomialFeatures, PCA, t-SNE, UMAP
-- Advanced cross-validation beyond basic train/test split
+- Advanced cross-validation beyond manual loops (KFold/cross_val_score shown in lecture
+  for demonstration but not required — simple train/test or train/val/test split is sufficient)
 
 ---
 
@@ -156,6 +208,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.dummy import DummyClassifier
 from sklearn.metrics import classification_report, ConfusionMatrixDisplay
 
 # Trainingsdaten aus CSV laden
@@ -173,6 +226,11 @@ scaler = MinMaxScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
+# Baseline: DummyClassifier als Vergleich (immer häufigste Klasse vorhersagen)
+dummy = DummyClassifier(strategy="most_frequent")
+dummy.fit(X_train_scaled, y_train)
+print(f"Baseline Accuracy: {dummy.score(X_test_scaled, y_test):.2%}")
+
 # KNN-Modell mit k=5 trainieren
 clf = KNeighborsClassifier(n_neighbors=5)
 clf.fit(X_train_scaled, y_train)
@@ -181,6 +239,41 @@ clf.fit(X_train_scaled, y_train)
 y_pred = clf.predict(X_test_scaled)
 unique_names = sorted(y.unique().astype(str))
 print(classification_report(y_true=y_test, y_pred=y_pred, target_names=unique_names))
+```
+
+### ML Regression (W11 pattern)
+
+```python
+# ML-Regression: Dauer anhand von Merkmalen vorhersagen (Kursbeispiel W11)
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+
+# Daten laden
+df = pd.read_csv("data.csv")
+X = df[["feature_1", "feature_2"]]
+y = df["target"]
+
+# Daten aufteilen
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.30, random_state=42
+)
+
+# Features skalieren (StandardScaler: Mittelwert=0, Standardabweichung=1)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Lineare Regression trainieren
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+
+# R²-Score auf Testdaten ausgeben (1.0 = perfekt, 0.0 = wie Mittelwert raten)
+print(f"R² Score: {model.score(X_test_scaled, y_test):.4f}")
+print(f"Koeffizienten: {model.coef_}")
+print(f"Achsenabschnitt: {model.intercept_:.4f}")
 ```
 
 ### Supabase in Python
