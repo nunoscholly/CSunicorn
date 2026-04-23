@@ -13,14 +13,43 @@ import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
-    const body = await request.json();
-    const { email, password } = body;
+// Einfache E-Mail-Prüfung analog zum Signup — crasht nicht bei Non-String-
+// Inputs und gibt 400 statt 500 zurück, wenn der Body kaputt ist.
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email || !password) {
+export async function POST(request: Request) {
+    // Robust parsen: malformed JSON darf nicht in einen 500 laufen.
+    let body: unknown;
+    try {
+        body = await request.json();
+    } catch {
+        return NextResponse.json(
+            { error: "Ungültiger Request-Body." },
+            { status: 400 },
+        );
+    }
+
+    if (!body || typeof body !== "object") {
+        return NextResponse.json(
+            { error: "Ungültiger Request-Body." },
+            { status: 400 },
+        );
+    }
+
+    const { email, password } = body as Record<string, unknown>;
+
+    if (typeof email !== "string" || typeof password !== "string") {
         return NextResponse.json(
             { error: "E-Mail und Passwort sind erforderlich." },
             { status: 400 },
+        );
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!EMAIL_REGEX.test(normalizedEmail) || !password) {
+        return NextResponse.json(
+            { error: "Anmeldung fehlgeschlagen. E-Mail und Passwort prüfen." },
+            { status: 401 },
         );
     }
 
@@ -47,7 +76,7 @@ export async function POST(request: Request) {
 
     // Anmeldung gegen Supabase Auth
     const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password,
     });
 

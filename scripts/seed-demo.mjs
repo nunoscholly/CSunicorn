@@ -56,6 +56,17 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 const DEMO_PASSWORD = "StartCrew123!";
 
 const DEMO_USERS = [
+  // Legacy-Demo-Admin: haelt die dokumentierten Login-Daten aus frueheren
+  // Wochen lebendig (admin@start.test / test123). Eigenes Passwort,
+  // ansonsten identisch zum normalen Admin-Flow.
+  {
+    id: "00000000-0000-4000-8000-000000000000",
+    email: "admin@start.test",
+    name: "Demo Admin",
+    role: "admin",
+    phone: "+41 79 100 00 00",
+    password: "test123",
+  },
   // Admin
   {
     id: "00000000-0000-4000-8000-000000000001",
@@ -222,43 +233,43 @@ const DEMO_USERS = [
 const DEMO_TEAMS = [
   {
     id: "00000000-0000-4000-9000-000000000001",
-    name: "[DEMO] Stage A Crew",
+    name: "Stage A Crew",
     zone: "Stage A",
     lead_id: "00000000-0000-4000-8000-000000000010",
   },
   {
     id: "00000000-0000-4000-9000-000000000002",
-    name: "[DEMO] Stage B Crew",
+    name: "Stage B Crew",
     zone: "Stage B",
     lead_id: "00000000-0000-4000-8000-000000000011",
   },
   {
     id: "00000000-0000-4000-9000-000000000003",
-    name: "[DEMO] Catering Crew",
+    name: "Catering Crew",
     zone: "Catering",
     lead_id: "00000000-0000-4000-8000-000000000012",
   },
   {
     id: "00000000-0000-4000-9000-000000000004",
-    name: "[DEMO] Entrance Crew",
+    name: "Entrance Crew",
     zone: "Entrance",
     lead_id: "00000000-0000-4000-8000-000000000013",
   },
   {
     id: "00000000-0000-4000-9000-000000000005",
-    name: "[DEMO] Backstage Crew",
+    name: "Backstage Crew",
     zone: "Backstage",
     lead_id: "00000000-0000-4000-8000-000000000014",
   },
   {
     id: "00000000-0000-4000-9000-000000000006",
-    name: "[DEMO] AV/Tech Crew",
+    name: "AV/Tech Crew",
     zone: "AV/Tech",
     lead_id: "00000000-0000-4000-8000-000000000015",
   },
   {
     id: "00000000-0000-4000-9000-000000000007",
-    name: "[DEMO] Main Hall Crew",
+    name: "Main Hall Crew",
     zone: "Main Hall",
     lead_id: "00000000-0000-4000-8000-000000000016",
   },
@@ -322,7 +333,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000001",
     zone: "Stage A",
-    task_name: "Traverse aufbauen [DEMO]",
+    task_name: "Traverse aufbauen",
     shift_start: todayAt("08:00"),
     shift_end: todayAt("10:00"),
     people_needed: 4,
@@ -336,7 +347,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000002",
     zone: "Stage A",
-    task_name: "Licht einstellen [DEMO]",
+    task_name: "Licht einstellen",
     shift_start: todayAt("13:00"),
     shift_end: todayAt("17:00"),
     people_needed: 3,
@@ -350,7 +361,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000003",
     zone: "Stage A",
-    task_name: "Sound-Check [DEMO]",
+    task_name: "Sound-Check",
     shift_start: todayAt("17:00"),
     shift_end: todayAt("19:00"),
     people_needed: 3,
@@ -364,7 +375,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000011",
     zone: "Stage B",
-    task_name: "Buehne aufbauen [DEMO]",
+    task_name: "Buehne aufbauen",
     shift_start: todayAt("07:00"),
     shift_end: todayAt("11:00"),
     people_needed: 5,
@@ -378,7 +389,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000012",
     zone: "Stage B",
-    task_name: "Kabel verlegen [DEMO]",
+    task_name: "Kabel verlegen",
     shift_start: todayAt("12:00"),
     shift_end: todayAt("15:00"),
     people_needed: 4,
@@ -392,7 +403,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000013",
     zone: "Stage B",
-    task_name: "Moderatorenpult [DEMO]",
+    task_name: "Moderatorenpult",
     shift_start: todayAt("15:00"),
     shift_end: todayAt("16:30"),
     people_needed: 2,
@@ -406,7 +417,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000021",
     zone: "Catering",
-    task_name: "Kueche vorbereiten [DEMO]",
+    task_name: "Kueche vorbereiten",
     shift_start: todayAt("06:00"),
     shift_end: todayAt("09:00"),
     people_needed: 6,
@@ -419,7 +430,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000022",
     zone: "Catering",
-    task_name: "Mittagsservice [DEMO]",
+    task_name: "Mittagsservice",
     shift_start: todayAt("11:30"),
     shift_end: todayAt("14:00"),
     people_needed: 8,
@@ -433,7 +444,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000031",
     zone: "Entrance",
-    task_name: "Empfangstresen aufstellen [DEMO]",
+    task_name: "Empfangstresen aufstellen",
     shift_start: todayAt("07:00"),
     shift_end: todayAt("09:00"),
     people_needed: 3,
@@ -446,7 +457,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000032",
     zone: "Entrance",
-    task_name: "Badges sortieren [DEMO]",
+    task_name: "Badges sortieren",
     shift_start: todayAt("09:00"),
     shift_end: todayAt("11:00"),
     people_needed: 4,
@@ -460,7 +471,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000041",
     zone: "Backstage",
-    task_name: "Catering Backstage [DEMO]",
+    task_name: "Catering Backstage",
     shift_start: todayAt("10:00"),
     shift_end: todayAt("13:00"),
     people_needed: 3,
@@ -474,7 +485,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000042",
     zone: "Backstage",
-    task_name: "Green Room einrichten [DEMO]",
+    task_name: "Green Room einrichten",
     shift_start: todayAt("13:00"),
     shift_end: todayAt("15:00"),
     people_needed: 2,
@@ -489,7 +500,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000051",
     zone: "AV/Tech",
-    task_name: "Kameras positionieren [DEMO]",
+    task_name: "Kameras positionieren",
     shift_start: todayAt("09:00"),
     shift_end: todayAt("12:00"),
     people_needed: 4,
@@ -503,7 +514,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000052",
     zone: "AV/Tech",
-    task_name: "Streaming-Check [DEMO]",
+    task_name: "Streaming-Check",
     shift_start: todayAt("14:00"),
     shift_end: todayAt("16:00"),
     people_needed: 2,
@@ -518,7 +529,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000061",
     zone: "Main Hall",
-    task_name: "Stuhlreihen ausrichten [DEMO]",
+    task_name: "Stuhlreihen ausrichten",
     shift_start: todayAt("08:00"),
     shift_end: todayAt("11:00"),
     people_needed: 10,
@@ -531,7 +542,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000062",
     zone: "Main Hall",
-    task_name: "Teppich verlegen [DEMO]",
+    task_name: "Teppich verlegen",
     shift_start: todayAt("11:00"),
     shift_end: todayAt("13:30"),
     people_needed: 5,
@@ -545,7 +556,7 @@ const DEMO_TASKS = [
   {
     id: "00000000-0000-4000-a000-000000000063",
     zone: "Main Hall",
-    task_name: "Notausgaenge markieren [DEMO]",
+    task_name: "Notausgaenge markieren",
     shift_start: todayAt("14:00"),
     shift_end: todayAt("15:00"),
     people_needed: 2,
@@ -640,7 +651,7 @@ const DEMO_REQUESTS = [
     shift_start: todayAt("17:00"),
     shift_end: todayAt("19:00"),
     skills: "Routing, Cableman",
-    notes: "[DEMO] Sound-Check braucht dringend zwei extra Hands.",
+    notes: "Sound-Check braucht dringend zwei extra Hands.",
     status: "open",
   },
   {
@@ -650,7 +661,7 @@ const DEMO_REQUESTS = [
     shift_start: todayAt("10:00"),
     shift_end: todayAt("13:00"),
     skills: null,
-    notes: "[DEMO] Eine Person zur Verstaerkung im Green Room.",
+    notes: "Eine Person zur Verstaerkung im Green Room.",
     status: "partial",
   },
   {
@@ -660,7 +671,7 @@ const DEMO_REQUESTS = [
     shift_start: todayAt("09:00"),
     shift_end: todayAt("12:00"),
     skills: "Videotechnik",
-    notes: "[DEMO] Kamerafuehrung — gern mit Broadcast-Erfahrung.",
+    notes: "Kamerafuehrung — gern mit Broadcast-Erfahrung.",
     status: "filled",
   },
   {
@@ -670,7 +681,7 @@ const DEMO_REQUESTS = [
     shift_start: todayAt("11:30"),
     shift_end: todayAt("14:00"),
     skills: "Food-Safety-Know-how",
-    notes: "[DEMO] Mittagsrush — drei Extras an die Stationen.",
+    notes: "Mittagsrush — drei Extras an die Stationen.",
     status: "open",
   },
   {
@@ -680,7 +691,7 @@ const DEMO_REQUESTS = [
     shift_start: todayAt("13:30"),
     shift_end: todayAt("15:00"),
     skills: null,
-    notes: "[DEMO] Teppich bis um 13:30 nicht fertig, wir brauchen Nachschub.",
+    notes: "Teppich bis um 13:30 nicht fertig, wir brauchen Nachschub.",
     status: "open",
   },
 ];
@@ -694,7 +705,7 @@ const DEMO_NOTIFICATIONS = [
     to_role: "lead",
     to_user_id: null,
     message:
-      "[DEMO] Kickoff-Meeting heute 16:00 im Buero. Kurz und knapp.",
+      "Kickoff-Meeting heute 16:00 im Buero. Kurz und knapp.",
     is_read: false,
   },
   {
@@ -702,7 +713,7 @@ const DEMO_NOTIFICATIONS = [
     to_role: null,
     to_user_id: "00000000-0000-4000-8000-000000000010",
     message:
-      "[DEMO] Stage A — zwei Personen noch fuer 17:00 gesucht.",
+      "Stage A — zwei Personen noch fuer 17:00 gesucht.",
     is_read: false,
   },
   {
@@ -710,7 +721,7 @@ const DEMO_NOTIFICATIONS = [
     to_role: null,
     to_user_id: "00000000-0000-4000-8000-000000000012",
     message:
-      "[DEMO] Danke fuer den reibungslosen Fruehservice!",
+      "Danke fuer den reibungslosen Fruehservice!",
     is_read: true,
   },
   {
@@ -718,7 +729,7 @@ const DEMO_NOTIFICATIONS = [
     to_role: "lead",
     to_user_id: null,
     message:
-      "[DEMO] Wetterwarnung ab 18:00 — Equipment drinnen lagern.",
+      "Wetterwarnung ab 18:00 — Equipment drinnen lagern.",
     is_read: false,
   },
   {
@@ -726,7 +737,7 @@ const DEMO_NOTIFICATIONS = [
     to_role: null,
     to_user_id: "00000000-0000-4000-8000-000000000014",
     message:
-      "[DEMO] Kuenstler X kommt 30min frueher. Bitte Backstage vorbereiten.",
+      "Kuenstler X kommt 30min frueher. Bitte Backstage vorbereiten.",
     is_read: true,
   },
 ];
@@ -785,34 +796,67 @@ async function main() {
   // Schritt 0: Cleanup — bestehende Demo-Daten loeschen
   console.log("Schritt 0: Bestehende Demo-Daten loeschen...");
 
-  // Auth-User loeschen (cascaded auf profiles)
+  // Auth-User sammeln: alle @startcrew.test und der Legacy-Admin admin@start.test.
   const { data: existingUsers } =
     await supabase.auth.admin.listUsers({ perPage: 1000 });
-  const demoUsers = (existingUsers?.users || []).filter((u) =>
-    u.email?.endsWith("@startcrew.test")
-  );
+  const demoUsers = (existingUsers?.users || []).filter((u) => {
+    if (!u.email) return false;
+    return (
+      u.email.endsWith("@startcrew.test") || u.email === "admin@start.test"
+    );
+  });
+  const demoUserIds = demoUsers.map((u) => u.id);
+
+  // Notifications VOR dem Auth-Cleanup saeubern: from_user_id wuerde sonst
+  // per ON DELETE SET NULL auf NULL wandern und die Zuordnung zu Demo-Usern
+  // ginge verloren. Zusaetzlich als Fallback das alte [DEMO]-Textpattern
+  // mitlaufen lassen, falls aeltere Seed-Runs noch Reste hinterlassen haben.
+  if (demoUserIds.length > 0) {
+    await supabase
+      .from("notifications")
+      .delete()
+      .in("from_user_id", demoUserIds);
+    await supabase
+      .from("notifications")
+      .delete()
+      .in("to_user_id", demoUserIds);
+  }
+  await supabase.from("notifications").delete().like("message", "[DEMO]%");
+
+  // Auth-User loeschen (cascaded auf profiles)
   for (const u of demoUsers) {
     await supabase.auth.admin.deleteUser(u.id);
   }
   console.log(`  ${demoUsers.length} alte Auth-User entfernt.`);
 
-  // Verwaiste Demo-Daten bereinigen
+  // Verwaiste Demo-Daten bereinigen — bevorzugt per fester UUID, mit dem
+  // alten Textmuster als Fallback fuer historische Reseeds.
+  const demoTaskIds = DEMO_TASKS.map((t) => t.id);
+  const demoTeamIds = DEMO_TEAMS.map((t) => t.id);
+
+  await supabase.from("tasks").delete().in("id", demoTaskIds);
   await supabase.from("tasks").delete().like("task_name", "%[DEMO]");
+  await supabase.from("requests").delete().in("team_id", demoTeamIds);
   await supabase.from("requests").delete().like("notes", "[DEMO]%");
   await supabase
-    .from("notifications")
+    .from("forecasts")
     .delete()
-    .like("message", "[DEMO]%");
-  await supabase.from("forecasts").delete().gte("id", "00000000-0000-0000-0000-000000000000");
+    .gte("id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("teams").delete().in("id", demoTeamIds);
   await supabase.from("teams").delete().like("name", "[DEMO]%");
-  console.log("  Verwaiste Tasks/Requests/Notifications/Forecasts/Teams entfernt.\n");
+  console.log(
+    "  Verwaiste Tasks/Requests/Notifications/Forecasts/Teams entfernt.\n"
+  );
 
   // Schritt 1: Demo-User ueber Admin-API erstellen
   console.log("Schritt 1: Demo-User erstellen...");
   for (const user of DEMO_USERS) {
+    // Per-User-Passwort erlaubt abweichende Logins wie den Legacy-Admin
+    // (admin@start.test / test123), ohne den Rest des Seeds zu beruehren.
+    const password = user.password ?? DEMO_PASSWORD;
     const { data, error } = await supabase.auth.admin.createUser({
       email: user.email,
-      password: DEMO_PASSWORD,
+      password,
       email_confirm: true,
       user_metadata: { name: user.name, role: user.role },
       // Feste UUID damit alle Referenzen (Teams, Assignments) stimmen
@@ -912,19 +956,36 @@ async function main() {
     console.log(`  ✓ ${DEMO_FORECASTS.length} Forecasts angelegt.`);
   }
 
+  // Schritt 9: Config-Platzhalter fuer die Venue-Map setzen. value=null
+  // sorgt dafuer, dass der Admin-Block explizit seinen Upload-Empty-State
+  // rendert, statt auf eine fehlende Config-Zeile zu laufen.
+  console.log("\nSchritt 9: Config-Platzhalter venue_map_path setzen...");
+  const { error: configError } = await supabase
+    .from("config")
+    .upsert({ key: "venue_map_path", value: null }, { onConflict: "key" });
+  if (configError) {
+    console.error(`  FEHLER: ${configError.message}`);
+  } else {
+    console.log("  ✓ config.venue_map_path vorgehalten.");
+  }
+
   // Login-Zusammenfassung
   console.log("\n=== FERTIG ===\n");
-  console.log("Alle Demo-Accounts haben Passwort:  StartCrew123!\n");
   console.log(
-    "Rolle      | Email                            | Name"
+    "Passwort fuer Demo-Accounts: StartCrew123! (Ausnahme unten markiert).\n"
   );
   console.log(
-    "-----------|----------------------------------|---------------"
+    "Rolle      | Email                            | Name             | Passwort"
+  );
+  console.log(
+    "-----------|----------------------------------|------------------|---------------"
   );
   for (const u of DEMO_USERS) {
     const role = u.role.padEnd(10);
     const email = u.email.padEnd(34);
-    console.log(`${role} | ${email} | ${u.name}`);
+    const name = u.name.padEnd(16);
+    const password = u.password ?? DEMO_PASSWORD;
+    console.log(`${role} | ${email} | ${name} | ${password}`);
   }
   console.log(
     "\nvolunteer11 + volunteer12 sind bewusst OHNE Team — perfekt zum Testen."

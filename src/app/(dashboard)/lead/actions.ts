@@ -118,6 +118,32 @@ export async function markNotificationReadAction(
     if (!ctx.ok) return ctx;
 
     const supabase = await createSupabaseServerClient();
+
+    // Ownership-Check: Lead darf nur Nachrichten abhaken, die an ihn selbst
+    // (to_user_id = eigene id) oder an die Rolle "lead" gebroadcastet wurden.
+    // Admin darf alle markieren — das matcht das bestehende Admin-Bypass-Muster.
+    if (ctx.role === "lead") {
+        const { data: target } = await supabase
+            .from("notifications")
+            .select("to_role, to_user_id")
+            .eq("id", notificationId)
+            .maybeSingle<{
+                to_role: string | null;
+                to_user_id: string | null;
+            }>();
+        if (!target) {
+            return { ok: false, error: "Nachricht nicht gefunden." };
+        }
+        const addressedToMe = target.to_user_id === ctx.userId;
+        const addressedToLeads = target.to_role === "lead";
+        if (!addressedToMe && !addressedToLeads) {
+            return {
+                ok: false,
+                error: "Diese Nachricht ist nicht an dich adressiert.",
+            };
+        }
+    }
+
     const { error } = await supabase
         .from("notifications")
         .update({ is_read: true })

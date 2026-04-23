@@ -171,17 +171,42 @@ export async function sendNotificationAction(
     let to_role: string | null = null;
     let to_user_id: string | null = null;
 
+    // Grobes UUID-Muster — fängt malformed Input ab, bevor wir eine Query
+    // gegen die DB absetzen. Richtiger UUID-Check passiert serverseitig.
+    const UUID_REGEX =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
     if (input.recipient === "all_leads") {
         to_role = "lead";
     } else if (input.recipient.startsWith("user:")) {
         const uuid = input.recipient.slice("user:".length);
-        if (!uuid) return { ok: false, error: "Ungültiger Empfänger." };
+        if (!uuid || !UUID_REGEX.test(uuid)) {
+            return { ok: false, error: "Ungültiger Empfänger." };
+        }
         to_user_id = uuid;
     } else {
         return { ok: false, error: "Ungültiger Empfänger." };
     }
 
     const supabase = await createSupabaseServerClient();
+
+    // Ziel-Validierung: bei gezielter Einzelnachricht sicherstellen, dass der
+    // Empfänger wirklich ein aktiver Lead ist. Ohne diesen Check könnte der PM
+    // per UUID-Spoofing an beliebige User-IDs senden.
+    if (to_user_id) {
+        const { data: target } = await supabase
+            .from("profiles")
+            .select("id, role, is_active")
+            .eq("id", to_user_id)
+            .maybeSingle<{ id: string; role: string; is_active: boolean }>();
+        if (!target || !target.is_active || target.role !== "lead") {
+            return {
+                ok: false,
+                error: "Empfänger existiert nicht oder ist kein aktiver Lead.",
+            };
+        }
+    }
+
     const { error } = await supabase.from("notifications").insert({
         from_user_id: guard.userId,
         to_role,

@@ -79,7 +79,14 @@ export default async function LeadPage() {
             .or(`to_role.eq.lead,to_user_id.eq.${user.id}`)
             .order("created_at", { ascending: false })
             .limit(20),
-        supabase.from("profiles").select("id, name"),
+        // Nur Absender-Profile holen, die tatsächlich Nachrichten schicken
+        // dürfen. Spart Payload und verhindert, dass die volle User-Liste
+        // beim Lead landet (defense-in-depth).
+        supabase
+            .from("profiles")
+            .select("id, name")
+            .in("role", ["admin", "pm", "lead"])
+            .eq("is_active", true),
     ]);
 
     // Map: profile_id → name, um Absender aufzulösen.
@@ -117,33 +124,29 @@ export default async function LeadPage() {
     }
 
     // --- Team-scoped Parallel-Fetch --------------------------------------
-    const [tasksRes, assignmentsRes, requestsRes, volunteersRes] =
-        await Promise.all([
-            supabase
-                .from("tasks")
-                .select(
-                    "id, task_name, priority, status, shift_start, shift_end, people_needed, slots_remaining",
-                )
-                .eq("zone", zone)
-                .order("shift_start", { ascending: true }),
-            supabase
-                .from("assignments")
-                .select(
-                    "id, task_id, volunteer_id, status",
-                )
-                .eq("team_id", teamId),
-            supabase
-                .from("requests")
-                .select(
-                    "id, people_needed, shift_start, shift_end, status, created_at",
-                )
-                .eq("team_id", teamId)
-                .order("created_at", { ascending: false }),
-            supabase
-                .from("profiles")
-                .select("id, name, role, avatar_url")
-                .eq("is_active", true),
-        ]);
+    // Profile-Fetch findet weiter unten sequentiell statt, weil wir erst
+    // wissen müssen, welche Volunteer-IDs im eigenen Team vorkommen
+    // (defense-in-depth: Lead darf keine fremden Profile im Payload bekommen).
+    const [tasksRes, assignmentsRes, requestsRes] = await Promise.all([
+        supabase
+            .from("tasks")
+            .select(
+                "id, task_name, priority, status, shift_start, shift_end, people_needed, slots_remaining",
+            )
+            .eq("zone", zone)
+            .order("shift_start", { ascending: true }),
+        supabase
+            .from("assignments")
+            .select("id, task_id, volunteer_id, status")
+            .eq("team_id", teamId),
+        supabase
+            .from("requests")
+            .select(
+                "id, people_needed, shift_start, shift_end, status, created_at",
+            )
+            .eq("team_id", teamId)
+            .order("created_at", { ascending: false }),
+    ]);
 
     const tasks = (tasksRes.data ?? []) as Array<{
         id: string;
@@ -157,6 +160,22 @@ export default async function LeadPage() {
     }>;
     const assignments = assignmentsRes.data ?? [];
     const requests = (requestsRes.data ?? []) as LeadRequest[];
+
+    // Volunteer-IDs aus den eigenen Assignments — Team-Scope für den Roster.
+    const teamVolunteerIds = Array.from(
+        new Set(assignments.map((a) => a.volunteer_id).filter(Boolean)),
+    );
+
+    // Jetzt nur die Profile laden, die wirklich zum Team gehören. Wenn das
+    // Team noch niemanden eingeteilt hat, sparen wir den Request komplett.
+    const volunteersRes = teamVolunteerIds.length
+        ? await supabase
+              .from("profiles")
+              .select("id, name, role, avatar_url")
+              .eq("is_active", true)
+              .in("id", teamVolunteerIds)
+        : { data: [] as Array<{ id: string; name: string; role: UserRole; avatar_url: string | null }> };
+
     const volunteerProfiles = (volunteersRes.data ?? []) as Array<{
         id: string;
         name: string;

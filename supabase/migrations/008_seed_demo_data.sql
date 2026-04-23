@@ -223,25 +223,25 @@ SELECT public.seed_create_user(
 
 INSERT INTO teams (id, name, zone, lead_id) VALUES
     ('00000000-0000-4000-9000-000000000001',
-     '[DEMO] Stage A Crew', 'Stage A',
+     'Stage A Crew', 'Stage A',
      '00000000-0000-4000-8000-000000000010'),
     ('00000000-0000-4000-9000-000000000002',
-     '[DEMO] Stage B Crew', 'Stage B',
+     'Stage B Crew', 'Stage B',
      '00000000-0000-4000-8000-000000000011'),
     ('00000000-0000-4000-9000-000000000003',
-     '[DEMO] Catering Crew', 'Catering',
+     'Catering Crew', 'Catering',
      '00000000-0000-4000-8000-000000000012'),
     ('00000000-0000-4000-9000-000000000004',
-     '[DEMO] Entrance Crew', 'Entrance',
+     'Entrance Crew', 'Entrance',
      '00000000-0000-4000-8000-000000000013'),
     ('00000000-0000-4000-9000-000000000005',
-     '[DEMO] Backstage Crew', 'Backstage',
+     'Backstage Crew', 'Backstage',
      '00000000-0000-4000-8000-000000000014'),
     ('00000000-0000-4000-9000-000000000006',
-     '[DEMO] AV/Tech Crew', 'AV/Tech',
+     'AV/Tech Crew', 'AV/Tech',
      '00000000-0000-4000-8000-000000000015'),
     ('00000000-0000-4000-9000-000000000007',
-     '[DEMO] Main Hall Crew', 'Main Hall',
+     'Main Hall Crew', 'Main Hall',
      '00000000-0000-4000-8000-000000000016');
 
 -- ============================================================
@@ -293,26 +293,28 @@ UPDATE profiles SET team_id = '00000000-0000-4000-9000-000000000007'
 -- im PM-Dashboard direkt Daten anzeigt.
 --
 -- Konvention:
---   * Suffix " [DEMO]" auf task_name erlaubt späteres Cleanup.
+--   * Feste UUIDs (00000000-0000-4000-a000-*) identifizieren Demo-Tasks
+--     deterministisch. Das Legacy-Suffix " [DEMO]" wird beim Cleanup
+--     oben weiterhin gefangen, neu eingespielte Rows kommen ohne Marker.
 --   * slots_remaining = people_needed - bereits zugewiesene Volunteers.
 --   * status='complete' wenn der Task durch ist.
 
 -- Stage A (3 Tasks)
 INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, slots_remaining, priority, status, description, created_by) VALUES
     ('00000000-0000-4000-a000-000000000001',
-     'Stage A', 'Traverse aufbauen [DEMO]',
+     'Stage A', 'Traverse aufbauen',
      (CURRENT_DATE + time '08:00'), (CURRENT_DATE + time '10:00'),
      4, 0, 'normal', 'complete',
      'Haupt-Traverse Stage A montieren und auf Zielhöhe ziehen.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000002',
-     'Stage A', 'Licht einstellen [DEMO]',
+     'Stage A', 'Licht einstellen',
      (CURRENT_DATE + time '13:00'), (CURRENT_DATE + time '17:00'),
      3, 1, 'warning', 'open',
      'Movinglights auf Presets programmieren, Fokus-Run nach Skript.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000003',
-     'Stage A', 'Sound-Check [DEMO]',
+     'Stage A', 'Sound-Check',
      (CURRENT_DATE + time '17:00'), (CURRENT_DATE + time '19:00'),
      3, 3, 'critical', 'open',
      'Line-Check, Gainstaging, Playback-Test.',
@@ -321,19 +323,19 @@ INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, s
 -- Stage B (3 Tasks)
 INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, slots_remaining, priority, status, description, created_by) VALUES
     ('00000000-0000-4000-a000-000000000011',
-     'Stage B', 'Buehne aufbauen [DEMO]',
+     'Stage B', 'Buehne aufbauen',
      (CURRENT_DATE + time '07:00'), (CURRENT_DATE + time '11:00'),
      5, 0, 'normal', 'complete',
      'Modulbuehne Stage B stellen und Rueckwand montieren.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000012',
-     'Stage B', 'Kabel verlegen [DEMO]',
+     'Stage B', 'Kabel verlegen',
      (CURRENT_DATE + time '12:00'), (CURRENT_DATE + time '15:00'),
      4, 2, 'warning', 'open',
      'Audio- und Netzkabel zur FoH ziehen und saubern abkleben.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000013',
-     'Stage B', 'Moderatorenpult [DEMO]',
+     'Stage B', 'Moderatorenpult',
      (CURRENT_DATE + time '15:00'), (CURRENT_DATE + time '16:30'),
      2, 2, 'normal', 'open',
      'Pult aufstellen, Mikro und Wasser bereitstellen.',
@@ -342,13 +344,13 @@ INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, s
 -- Catering (2 Tasks)
 INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, slots_remaining, priority, status, description, created_by) VALUES
     ('00000000-0000-4000-a000-000000000021',
-     'Catering', 'Kueche vorbereiten [DEMO]',
+     'Catering', 'Kueche vorbereiten',
      (CURRENT_DATE + time '06:00'), (CURRENT_DATE + time '09:00'),
      6, 0, 'normal', 'complete',
      'Mise en place, Kaffeemaschinen anheizen.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000022',
-     'Catering', 'Mittagsservice [DEMO]',
+     'Catering', 'Mittagsservice',
      (CURRENT_DATE + time '11:30'), (CURRENT_DATE + time '14:00'),
      8, 8, 'warning', 'open',
      'Mittagessen an Buildweek-Crew ausgeben.',
@@ -357,13 +359,13 @@ INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, s
 -- Entrance (2 Tasks)
 INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, slots_remaining, priority, status, description, created_by) VALUES
     ('00000000-0000-4000-a000-000000000031',
-     'Entrance', 'Empfangstresen aufstellen [DEMO]',
+     'Entrance', 'Empfangstresen aufstellen',
      (CURRENT_DATE + time '07:00'), (CURRENT_DATE + time '09:00'),
      3, 0, 'normal', 'complete',
      'Tresen aufbauen, Banner anbringen.',
      '00000000-0000-4000-8000-000000000003'),
     ('00000000-0000-4000-a000-000000000032',
-     'Entrance', 'Badges sortieren [DEMO]',
+     'Entrance', 'Badges sortieren',
      (CURRENT_DATE + time '09:00'), (CURRENT_DATE + time '11:00'),
      4, 4, 'normal', 'open',
      'Badges alphabetisch nach Firma vorsortieren.',
@@ -372,13 +374,13 @@ INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, s
 -- Backstage (2 Tasks)
 INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, slots_remaining, priority, status, description, created_by) VALUES
     ('00000000-0000-4000-a000-000000000041',
-     'Backstage', 'Catering Backstage [DEMO]',
+     'Backstage', 'Catering Backstage',
      (CURRENT_DATE + time '10:00'), (CURRENT_DATE + time '13:00'),
      3, 1, 'warning', 'open',
      'Kuehlschraenke bestuecken, Getraenke nachliefern.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000042',
-     'Backstage', 'Green Room einrichten [DEMO]',
+     'Backstage', 'Green Room einrichten',
      (CURRENT_DATE + time '13:00'), (CURRENT_DATE + time '15:00'),
      2, 2, 'normal', 'open',
      'Sofa stellen, Getraenke, WLAN-Codes ausdrucken.',
@@ -387,13 +389,13 @@ INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, s
 -- AV/Tech (2 Tasks)
 INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, slots_remaining, priority, status, description, created_by) VALUES
     ('00000000-0000-4000-a000-000000000051',
-     'AV/Tech', 'Kameras positionieren [DEMO]',
+     'AV/Tech', 'Kameras positionieren',
      (CURRENT_DATE + time '09:00'), (CURRENT_DATE + time '12:00'),
      4, 2, 'critical', 'open',
      'Drei Kameras aufstellen, Stream-Preview checken.',
      '00000000-0000-4000-8000-000000000003'),
     ('00000000-0000-4000-a000-000000000052',
-     'AV/Tech', 'Streaming-Check [DEMO]',
+     'AV/Tech', 'Streaming-Check',
      (CURRENT_DATE + time '14:00'), (CURRENT_DATE + time '16:00'),
      2, 2, 'warning', 'open',
      'Upload-Bandbreite, OBS-Scenes, Backup-Stream verifizieren.',
@@ -402,19 +404,19 @@ INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, s
 -- Main Hall (3 Tasks)
 INSERT INTO tasks (id, zone, task_name, shift_start, shift_end, people_needed, slots_remaining, priority, status, description, created_by) VALUES
     ('00000000-0000-4000-a000-000000000061',
-     'Main Hall', 'Stuhlreihen ausrichten [DEMO]',
+     'Main Hall', 'Stuhlreihen ausrichten',
      (CURRENT_DATE + time '08:00'), (CURRENT_DATE + time '11:00'),
      10, 0, 'normal', 'complete',
      '480 Stuehle in 12 Reihen ausrichten.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000062',
-     'Main Hall', 'Teppich verlegen [DEMO]',
+     'Main Hall', 'Teppich verlegen',
      (CURRENT_DATE + time '11:00'), (CURRENT_DATE + time '13:30'),
      5, 3, 'warning', 'open',
      'Mittelgang-Teppich und Laeufer zu den Buehnenseiten.',
      '00000000-0000-4000-8000-000000000002'),
     ('00000000-0000-4000-a000-000000000063',
-     'Main Hall', 'Notausgaenge markieren [DEMO]',
+     'Main Hall', 'Notausgaenge markieren',
      (CURRENT_DATE + time '14:00'), (CURRENT_DATE + time '15:00'),
      2, 2, 'critical', 'open',
      'Leuchtmarkierungen anbringen, Fluchtwege freihalten.',
@@ -474,23 +476,23 @@ INSERT INTO assignments (task_id, volunteer_id, team_id, status) VALUES
 INSERT INTO requests (team_id, zone, people_needed, shift_start, shift_end, skills, notes, status) VALUES
     ('00000000-0000-4000-9000-000000000001', 'Stage A',
      2, (CURRENT_DATE + time '17:00'), (CURRENT_DATE + time '19:00'),
-     'Routing, Cableman', '[DEMO] Sound-Check braucht dringend zwei extra Hands.',
+     'Routing, Cableman', 'Sound-Check braucht dringend zwei extra Hands.',
      'open'),
     ('00000000-0000-4000-9000-000000000005', 'Backstage',
      1, (CURRENT_DATE + time '10:00'), (CURRENT_DATE + time '13:00'),
-     NULL, '[DEMO] Eine Person zur Verstaerkung im Green Room.',
+     NULL, 'Eine Person zur Verstaerkung im Green Room.',
      'partial'),
     ('00000000-0000-4000-9000-000000000006', 'AV/Tech',
      1, (CURRENT_DATE + time '09:00'), (CURRENT_DATE + time '12:00'),
-     'Videotechnik', '[DEMO] Kameraführung — gern mit Broadcast-Erfahrung.',
+     'Videotechnik', 'Kameraführung — gern mit Broadcast-Erfahrung.',
      'filled'),
     ('00000000-0000-4000-9000-000000000003', 'Catering',
      3, (CURRENT_DATE + time '11:30'), (CURRENT_DATE + time '14:00'),
-     'Food-Safety-Know-how', '[DEMO] Mittagsrush — drei Extras an die Stationen.',
+     'Food-Safety-Know-how', 'Mittagsrush — drei Extras an die Stationen.',
      'open'),
     ('00000000-0000-4000-9000-000000000007', 'Main Hall',
      2, (CURRENT_DATE + time '13:30'), (CURRENT_DATE + time '15:00'),
-     NULL, '[DEMO] Teppich bis um 13:30 nicht fertig, wir brauchen Nachschub.',
+     NULL, 'Teppich bis um 13:30 nicht fertig, wir brauchen Nachschub.',
      'open');
 
 -- ============================================================
@@ -500,22 +502,22 @@ INSERT INTO requests (team_id, zone, people_needed, shift_start, shift_end, skil
 
 INSERT INTO notifications (from_user_id, to_role, to_user_id, message, is_read) VALUES
     ('00000000-0000-4000-8000-000000000002', 'lead', NULL,
-     '[DEMO] Kickoff-Meeting heute 16:00 im Buero. Kurz und knapp.',
+     'Kickoff-Meeting heute 16:00 im Buero. Kurz und knapp.',
      false),
     ('00000000-0000-4000-8000-000000000003', NULL,
      '00000000-0000-4000-8000-000000000010',
-     '[DEMO] Stage A — zwei Personen noch fuer 17:00 gesucht.',
+     'Stage A — zwei Personen noch fuer 17:00 gesucht.',
      false),
     ('00000000-0000-4000-8000-000000000002', NULL,
      '00000000-0000-4000-8000-000000000012',
-     '[DEMO] Danke fuer den reibungslosen Fruehservice!',
+     'Danke fuer den reibungslosen Fruehservice!',
      true),
     ('00000000-0000-4000-8000-000000000003', 'lead', NULL,
-     '[DEMO] Wetterwarnung ab 18:00 — Equipment drinnen lagern.',
+     'Wetterwarnung ab 18:00 — Equipment drinnen lagern.',
      false),
     ('00000000-0000-4000-8000-000000000002', NULL,
      '00000000-0000-4000-8000-000000000014',
-     '[DEMO] Kuenstler X kommt 30min frueher. Bitte Backstage vorbereiten.',
+     'Kuenstler X kommt 30min frueher. Bitte Backstage vorbereiten.',
      true);
 
 -- ============================================================

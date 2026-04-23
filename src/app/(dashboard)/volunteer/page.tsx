@@ -70,13 +70,23 @@ export default async function VolunteerPage() {
     // --- Daten parallel laden --------------------------------------------
     // tasks + assignments reichen für Sektor-Karte; zusätzlich eigenes
     // aktives Assignment für §3.1 und teams für Lead-Kontakt nach Commit.
-    const [tasksRes, assignmentsRes, myAssignmentsRes, teamsRes, profilesRes] =
+    // Profile-/Phone-Fetch erfolgt bewusst NICHT hier: der Volunteer soll
+    // nicht die Telefonnummern aller User im Payload erhalten. Stattdessen
+    // fragen wir weiter unten gezielt nur das Profil des zuständigen Leads
+    // ab ("Lead phone only exposed after commit", user_profiles.md).
+    // CSV-Batchimports ohne Zone oder Schichtfenster fallen vom Volunteer-Feed
+    // raus: ohne diese Felder taugt die Karte weder fuer die Sektor-Karte noch
+    // fuer den "ohne feste Zeit"-Platzhalter. Wir zeigen nur Tasks, die
+    // Volunteers wirklich uebernehmen koennen.
+    const [tasksRes, assignmentsRes, myAssignmentsRes, teamsRes] =
         await Promise.all([
             supabase
                 .from("tasks")
                 .select(
                     "id, zone, task_name, shift_start, shift_end, description, people_needed, slots_remaining, priority, status",
-                ),
+                )
+                .not("zone", "is", null)
+                .not("shift_start", "is", null),
             supabase
                 .from("assignments")
                 .select("task_id, status"),
@@ -88,7 +98,6 @@ export default async function VolunteerPage() {
                 .order("created_at", { ascending: false })
                 .limit(1),
             supabase.from("teams").select("id, name, zone, lead_id"),
-            supabase.from("profiles").select("id, name, phone, role"),
         ]);
 
     const tasks = (tasksRes.data ?? []) as TaskRow[];
@@ -97,36 +106,52 @@ export default async function VolunteerPage() {
         | { id: string; task_id: string; team_id: string | null; status: string }
         | undefined;
     const teams = teamsRes.data ?? [];
-    const profiles = (profilesRes.data ?? []) as Array<{
-        id: string;
-        name: string;
-        phone: string | null;
-        role: UserRole;
-    }>;
 
-    const profileById = new Map(profiles.map((p) => [p.id, p]));
     const teamByZone = new Map<string, { id: string; name: string; lead_id: string | null }>();
     for (const t of teams) {
         teamByZone.set(t.zone, { id: t.id, name: t.name, lead_id: t.lead_id });
     }
 
     // --- Active Task auflösen (§3.1) -------------------------------------
+    // Lead-Profil nur für die eigene Zone laden — nicht die komplette
+    // Profile-Tabelle mit allen Telefonnummern ziehen.
     let activeTask: ActiveTask | null = null;
     if (myActiveAssignment) {
         const task = tasks.find((t) => t.id === myActiveAssignment.task_id);
         if (task) {
-            // Lead-Kontakt nur freigeben, wenn der Volunteer wirklich committed
-            // ist — docs/user_profiles.md: "Lead phone only exposed after commit".
             const team = task.zone ? teamByZone.get(task.zone) : null;
-            const lead = team?.lead_id ? profileById.get(team.lead_id) : null;
+            let leadName: string | null = null;
+            let leadPhone: string | null = null;
+
+            if (team?.lead_id) {
+                // Einzel-Fetch: nur der zuständige Lead, nur die Felder, die
+                // wir im UI tatsächlich brauchen.
+                const { data: leadProfile } = await supabase
+                    .from("profiles")
+                    .select("id, name, phone, role")
+                    .eq("id", team.lead_id)
+                    .eq("role", "lead")
+                    .eq("is_active", true)
+                    .maybeSingle<{
+                        id: string;
+                        name: string;
+                        phone: string | null;
+                        role: UserRole;
+                    }>();
+                if (leadProfile) {
+                    leadName = leadProfile.name;
+                    leadPhone = leadProfile.phone;
+                }
+            }
+
             activeTask = {
                 taskName: task.task_name,
                 zone: task.zone,
                 shiftStart: task.shift_start,
                 shiftEnd: task.shift_end,
                 description: task.description,
-                leadName: lead?.name ?? null,
-                leadPhone: lead?.phone ?? null,
+                leadName,
+                leadPhone,
             };
         }
     }
