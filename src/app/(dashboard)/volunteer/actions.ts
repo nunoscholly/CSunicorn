@@ -49,7 +49,11 @@ export async function commitToTaskAction(
     if (!profile || !profile.is_active) {
         return { ok: false, error: "Account nicht aktiv." };
     }
-    if (!["admin", "volunteer"].includes(profile.role)) {
+    // Nur echte Volunteers dürfen Slots belegen. Admin hat zwar Lese-Zugriff
+    // auf /volunteer (zum Testen), darf aber keine Assignments auf sich
+    // selbst schreiben — sonst blockiert er echte Volunteer-Plätze und die
+    // Sektor-Map zeigt verzerrte Zahlen (BUG-4).
+    if (profile.role !== "volunteer") {
         return {
             ok: false,
             error: "Nur Volunteers dürfen Tasks übernehmen.",

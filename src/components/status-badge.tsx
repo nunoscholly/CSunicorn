@@ -16,12 +16,13 @@ type Variant =
     | "neutral";
 
 // Semantische Farbzuordnung. Rollen-Badges nach docs/visualizations.md:
-// Admin=grün, PM=gelb, Lead=lila, Volunteer=blau.
+// Admin=grün, PM=gelb, Lead=lila, Volunteer=blau. Alle Farben als Design-
+// Tokens aus globals.css — keine rohen Hex-Werte mehr inline (Brand-Regel).
 const VARIANT_CLASSES: Record<Variant, string> = {
     admin: "bg-success-green/15 text-success-green",
     pm: "bg-signal-yellow/15 text-signal-yellow",
-    lead: "bg-[#a855f7]/20 text-[#c084fc]",
-    volunteer: "bg-[#3b82f6]/20 text-[#60a5fa]",
+    lead: "bg-lead-purple/20 text-lead-purple-soft",
+    volunteer: "bg-volunteer-blue/20 text-volunteer-blue-soft",
     active: "bg-success-green/15 text-success-green",
     inactive: "bg-concrete/20 text-concrete",
     urgent: "bg-urgent-red/15 text-urgent-red",

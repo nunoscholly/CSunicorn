@@ -12,6 +12,18 @@
   --signal-yellow-hover: #e0b800;
   --urgent-red: #ff4d4d;
   --success-green: #3ecf8e;
+  /* Rollen-Akzentfarben für Badges — Lead lila, Volunteer blau
+     (docs/visualizations.md). Zwei Stufen, damit Background und
+     Text-Kontrast passt. */
+  --lead-purple: #a855f7;
+  --lead-purple-soft: #c084fc;
+  --volunteer-blue: #3b82f6;
+  --volunteer-blue-soft: #60a5fa;
+  /* Chart-Hilfslinien + Achsen-Text für den Forecast-Chart. */
+  --chart-grid: #2a2a2a;
+  --chart-axis: #444444;
+  --chart-tick: #888888;
+  --chart-label: #bbbbbb;
 }
 
 @theme inline {
@@ -24,6 +36,14 @@
   --color-signal-yellow-hover: var(--signal-yellow-hover);
   --color-urgent-red: var(--urgent-red);
   --color-success-green: var(--success-green);
+  --color-lead-purple: var(--lead-purple);
+  --color-lead-purple-soft: var(--lead-purple-soft);
+  --color-volunteer-blue: var(--volunteer-blue);
+  --color-volunteer-blue-soft: var(--volunteer-blue-soft);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-axis: var(--chart-axis);
+  --color-chart-tick: var(--chart-tick);
+  --color-chart-label: var(--chart-label);
   --font-sans: "Avenir Next", Avenir, "Helvetica Neue", sans-serif;
 }
 

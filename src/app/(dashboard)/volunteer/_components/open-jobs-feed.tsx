@@ -31,6 +31,10 @@ export type OpenJob = {
 type OpenJobsFeedProps = {
     jobs: OpenJob[];
     volunteerHasActiveTask: boolean;
+    // True nur für Volunteer-Rollen. Admin öffnet /volunteer nur zum
+    // Vorschauen — ohne Flag würde der "Übernehmen"-Button echte Slots
+    // auf den Admin buchen und die Sektor-Map verzerren (BUG-4).
+    isVolunteer: boolean;
 };
 
 const PRIORITY_RANK: Record<TaskPriority, number> = {
@@ -52,7 +56,11 @@ const PRIORITY_VARIANT: Record<
     normal: "neutral",
 };
 
-export function OpenJobsFeed({ jobs, volunteerHasActiveTask }: OpenJobsFeedProps) {
+export function OpenJobsFeed({
+    jobs,
+    volunteerHasActiveTask,
+    isVolunteer,
+}: OpenJobsFeedProps) {
     const [error, setError] = useState<string | null>(null);
     const [pendingId, setPendingId] = useState<string | null>(null);
     const [, startTransition] = useTransition();
@@ -104,6 +112,7 @@ export function OpenJobsFeed({ jobs, volunteerHasActiveTask }: OpenJobsFeedProps
                             key={job.id}
                             job={job}
                             volunteerHasActiveTask={volunteerHasActiveTask}
+                            isVolunteer={isVolunteer}
                             isPending={pendingId === job.id}
                             onCommit={() => handleCommit(job.id)}
                         />
@@ -117,25 +126,31 @@ export function OpenJobsFeed({ jobs, volunteerHasActiveTask }: OpenJobsFeedProps
 function JobCard({
     job,
     volunteerHasActiveTask,
+    isVolunteer,
     isPending,
     onCommit,
 }: {
     job: OpenJob;
     volunteerHasActiveTask: boolean;
+    isVolunteer: boolean;
     isPending: boolean;
     onCommit: () => void;
 }) {
     const isTaken = job.slots_remaining <= 0;
-    const isDisabled = isTaken || volunteerHasActiveTask;
+    // Admin darf nicht committen — der Server-Action lehnt ohnehin ab,
+    // aber wir zeigen den Zustand auch im UI (BUG-4).
+    const isDisabled = isTaken || volunteerHasActiveTask || !isVolunteer;
 
     // Button-Label nach Zustand. Kurz + aktiv gemäss brand_guidelines.md.
     const buttonLabel = isPending
         ? "Übernehme…"
-        : isTaken
-          ? "Bereits vergeben"
-          : volunteerHasActiveTask
-            ? "Schon eingeteilt"
-            : "Übernehmen";
+        : !isVolunteer
+          ? "Nur Volunteers"
+          : isTaken
+            ? "Bereits vergeben"
+            : volunteerHasActiveTask
+              ? "Schon eingeteilt"
+              : "Übernehmen";
 
     const buttonClasses = isDisabled
         ? "cursor-not-allowed bg-background/60 text-concrete"

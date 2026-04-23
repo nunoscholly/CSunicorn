@@ -205,6 +205,7 @@ export default async function VolunteerPage() {
             <OpenJobsFeed
                 jobs={openJobs}
                 volunteerHasActiveTask={volunteerHasActiveTask}
+                isVolunteer={currentProfile.role === "volunteer"}
             />
         </div>
     );

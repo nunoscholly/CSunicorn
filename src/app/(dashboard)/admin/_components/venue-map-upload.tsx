@@ -97,6 +97,7 @@ export function VenueMapUpload({ currentPath }: VenueMapUploadProps) {
                     htmlFor="venue-map-file"
                     tabIndex={0}
                     role="button"
+                    aria-label="Venue-Map-Datei auswählen (PNG, PDF oder SVG)"
                     onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();

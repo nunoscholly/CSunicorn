@@ -273,6 +273,7 @@ export function BatchTaskUpload() {
                     htmlFor="batch-task-file"
                     tabIndex={0}
                     role="button"
+                    aria-label="CSV-Datei für den Task-Batchimport auswählen"
                     onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();

@@ -44,7 +44,7 @@ export default async function Home() {
             <main className="flex flex-col items-center gap-8">
                 <Logo />
                 <p className="text-center text-sm text-concrete">
-                    Build week runs on START CREW.
+                    Die Build Week läuft auf START CREW.
                 </p>
                 <LoginForm />
             </main>

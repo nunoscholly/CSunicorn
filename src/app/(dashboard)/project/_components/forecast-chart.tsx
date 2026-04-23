@@ -77,7 +77,8 @@ export function ForecastChart({ slots }: ForecastChartProps) {
                 role="img"
                 aria-label="Bemannungs-Prognose pro 2h-Slot"
             >
-                {/* Y-Achse-Ticks + horizontale Hilfslinien */}
+                {/* Y-Achse-Ticks + horizontale Hilfslinien. Farben über
+                    CSS-Tokens aus globals.css, keine Hex-Werte inline. */}
                 {ticks.map((tick) => {
                     const y = yFor(tick);
                     return (
@@ -87,7 +88,7 @@ export function ForecastChart({ slots }: ForecastChartProps) {
                                 x2={CHART_WIDTH - PADDING_X}
                                 y1={y}
                                 y2={y}
-                                stroke="#2a2a2a"
+                                stroke="var(--chart-grid)"
                                 strokeWidth={1}
                             />
                             <text
@@ -95,7 +96,7 @@ export function ForecastChart({ slots }: ForecastChartProps) {
                                 y={y + 3}
                                 fontSize={10}
                                 textAnchor="end"
-                                fill="#888"
+                                fill="var(--chart-tick)"
                             >
                                 {tick}
                             </text>
@@ -122,13 +123,13 @@ export function ForecastChart({ slots }: ForecastChartProps) {
 
                     return (
                         <g key={slot.label} opacity={opacity}>
-                            {/* Ist (gelb gefüllt) */}
+                            {/* Ist (Signal-Yellow gefüllt) */}
                             <rect
                                 x={actualX}
                                 y={yActual}
                                 width={barWidth}
                                 height={Math.max(0, CHART_HEIGHT - PADDING_BOTTOM - yActual)}
-                                fill="#F5C800"
+                                fill="var(--signal-yellow)"
                             />
                             {/* Prognose (nur Rand) */}
                             <rect
@@ -140,10 +141,10 @@ export function ForecastChart({ slots }: ForecastChartProps) {
                                     CHART_HEIGHT - PADDING_BOTTOM - yPredicted,
                                 )}
                                 fill="transparent"
-                                stroke="#F5C800"
+                                stroke="var(--signal-yellow)"
                                 strokeWidth={1.5}
                             />
-                            {/* Fehlbedarf (rot) — nur rendern, wenn positiv */}
+                            {/* Fehlbedarf (Urgent-Red) — nur rendern, wenn positiv */}
                             {shortage > 0 ? (
                                 <rect
                                     x={shortageX}
@@ -153,7 +154,7 @@ export function ForecastChart({ slots }: ForecastChartProps) {
                                         0,
                                         CHART_HEIGHT - PADDING_BOTTOM - yShortage,
                                     )}
-                                    fill="#FF4D4D"
+                                    fill="var(--urgent-red)"
                                 />
                             ) : null}
                             {/* X-Achse-Label */}
@@ -162,7 +163,7 @@ export function ForecastChart({ slots }: ForecastChartProps) {
                                 y={CHART_HEIGHT - PADDING_BOTTOM + 18}
                                 fontSize={11}
                                 textAnchor="middle"
-                                fill="#bbb"
+                                fill="var(--chart-label)"
                             >
                                 {slot.label}
                             </text>
@@ -176,7 +177,7 @@ export function ForecastChart({ slots }: ForecastChartProps) {
                     x2={CHART_WIDTH - PADDING_X}
                     y1={CHART_HEIGHT - PADDING_BOTTOM}
                     y2={CHART_HEIGHT - PADDING_BOTTOM}
-                    stroke="#444"
+                    stroke="var(--chart-axis)"
                     strokeWidth={1}
                 />
             </svg>

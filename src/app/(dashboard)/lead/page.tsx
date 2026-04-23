@@ -229,10 +229,17 @@ export default async function LeadPage() {
         totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     const staffedAssignments = rosterMembers.length;
+    // Sobald alle Tasks der Zone auf 'complete' stehen, fällt requiredHeadcount
+    // auf 0 (siehe Reducer oben). Den Bruch nicht durch 0 dividieren, aber auch
+    // nicht auf 0% einrasten: wenn noch Volunteers im Roster stehen, ist die
+    // Schicht schlicht fertig → 100% Auslastung. Ohne diesen Guard zeigte der
+    // Lead-Dashboard "2 / 0 besetzt · Team-Auslastung 0%" (BUG-2).
     const crewUtilisationPct =
         requiredHeadcount > 0
             ? Math.round((staffedAssignments / requiredHeadcount) * 100)
-            : 0;
+            : staffedAssignments > 0
+              ? 100
+              : 0;
 
     const requestsTotal = requests.length;
     const requestsClosed = requests.filter(

@@ -32,8 +32,15 @@ export function TeamRoster({
     staffed,
     required,
 }: TeamRosterProps) {
-    const coveragePct =
-        required > 0 ? Math.round((staffed / required) * 100) : 0;
+    // Edge-Case: Schicht abgeschlossen (alle Tasks 'complete'). Dann ist
+    // required=0 und staffed>0 — wir zeigen den Roster als 100% fertig an,
+    // statt "X / 0 besetzt" mit 0% Progress (BUG-2).
+    const shiftDone = required === 0 && staffed > 0;
+    const coveragePct = shiftDone
+        ? 100
+        : required > 0
+          ? Math.round((staffed / required) * 100)
+          : 0;
 
     // Farbschwelle analog Volunteer-Sektor-Map aus docs/user_profiles.md §Volunteer:
     // < 50 % rot, 50–89 % gelb, ≥ 90 % grün.
@@ -60,7 +67,9 @@ export function TeamRoster({
                     </p>
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-concrete">
-                    {staffed} / {required} besetzt
+                    {shiftDone
+                        ? `${staffed} Volunteers · Schicht abgeschlossen`
+                        : `${staffed} / ${required} besetzt`}
                 </span>
             </div>
 

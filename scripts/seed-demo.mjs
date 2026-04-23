@@ -884,10 +884,18 @@ async function main() {
     console.log(`  ✓ ${DEMO_TEAMS.length} Teams angelegt.`);
   }
 
-  // Schritt 3: Profile updaten (phone + team_id)
-  console.log("\nSchritt 3: Profile updaten (phone + team_id)...");
+  // Schritt 3: Profile updaten (phone + team_id + role/name als Belt-and-
+  // Suspenders). Der handle_new_user-Trigger liest role/name aus dem
+  // raw_user_meta_data, aber das ist schon mehrfach schiefgegangen — je
+  // nach Trigger-Version wurde role=volunteer als Default gespeichert.
+  // Wir überschreiben deshalb hier noch einmal explizit.
+  console.log("\nSchritt 3: Profile updaten (phone + team_id + role/name)...");
   for (const user of DEMO_USERS) {
-    const updates = { phone: user.phone };
+    const updates = {
+      phone: user.phone,
+      role: user.role,
+      name: user.name,
+    };
     if (TEAM_ASSIGNMENTS[user.id]) {
       updates.team_id = TEAM_ASSIGNMENTS[user.id];
     }
