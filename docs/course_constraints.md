@@ -51,7 +51,13 @@ why we chose it. The comment should be detailed enough that a reviewer sees we
 understood it, not just copy-pasted.
 
 ```python
-# Nichts hier bisher — bei Bedarf ergänzen und Grund dokumentieren.
+from dotenv import load_dotenv          # .env-Datei laden (Credentials sicher verwalten)
+os.path.join() / os.path.dirname()      # Pfade betriebssystemunabhaengig bauen
+zip(list_a, list_b)                     # Zwei Listen parallel durchlaufen
+", ".join(liste)                        # Liste zu kommasepariertem String verbinden
+df.iterrows()                           # DataFrame zeilenweise durchlaufen
+df.copy()                               # DataFrame kopieren (verhindert SettingWithCopyWarning)
+df["col"].clip(lower=x)                 # Werte auf Mindest-/Hoechstwert begrenzen
 ```
 
 Use exactly these import aliases. No other libraries beyond what is listed above.
