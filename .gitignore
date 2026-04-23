@@ -23,6 +23,9 @@ ml/.env
 # Supabase local
 supabase/.temp/
 
+# Playwright MCP runtime traces (console logs + a11y-tree snapshots)
+.playwright-mcp/
+
 # OS
 .DS_Store
 Thumbs.db
