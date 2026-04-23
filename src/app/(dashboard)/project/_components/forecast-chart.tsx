@@ -1,9 +1,9 @@
-// ML-Workforce-Forecast-Chart (§1.2).
+// ML-Bemannungs-Prognose-Chart (§1.2).
 // Gruppierter Balkenchart über die acht 2h-Slots einer Build-Schicht.
 // Pro Slot drei Balken:
-//   - "actual"    → gelb, gefüllt
-//   - "predicted" → transparent mit gelbem Rand
-//   - "shortage"  → rot, nur wenn actual < predicted
+//   - "Ist"         → gelb, gefüllt
+//   - "Prognose"    → transparent mit gelbem Rand
+//   - "Fehlbedarf"  → rot, nur wenn Ist < Prognose
 // Slots in der Zukunft bekommen 40% Deckkraft, damit klar ist: hier ist
 // nichts passiert, nur vorhergesagt.
 //
@@ -62,9 +62,9 @@ export function ForecastChart({ slots }: ForecastChartProps) {
         <div className="rounded-xl border border-concrete/20 bg-surface p-6">
             <div className="mb-4 flex items-baseline justify-between">
                 <div>
-                    <h2 className="text-lg font-bold">Workforce-Forecast</h2>
+                    <h2 className="text-lg font-bold">Bemannung heute</h2>
                     <p className="text-sm text-foreground/60">
-                        Actual vs. Predicted über den Tag — 2h-Slots 07:00–21:00.
+                        Ist vs. Prognose über den Tag — 2h-Slots 07:00–21:00.
                     </p>
                 </div>
                 <Legend />
@@ -75,7 +75,7 @@ export function ForecastChart({ slots }: ForecastChartProps) {
                 preserveAspectRatio="xMidYMid meet"
                 className="w-full"
                 role="img"
-                aria-label="Workforce-Forecast pro 2h-Slot"
+                aria-label="Bemannungs-Prognose pro 2h-Slot"
             >
                 {/* Y-Achse-Ticks + horizontale Hilfslinien */}
                 {ticks.map((tick) => {
@@ -122,7 +122,7 @@ export function ForecastChart({ slots }: ForecastChartProps) {
 
                     return (
                         <g key={slot.label} opacity={opacity}>
-                            {/* Actual (gelb gefüllt) */}
+                            {/* Ist (gelb gefüllt) */}
                             <rect
                                 x={actualX}
                                 y={yActual}
@@ -130,7 +130,7 @@ export function ForecastChart({ slots }: ForecastChartProps) {
                                 height={Math.max(0, CHART_HEIGHT - PADDING_BOTTOM - yActual)}
                                 fill="#F5C800"
                             />
-                            {/* Predicted (nur Rand) */}
+                            {/* Prognose (nur Rand) */}
                             <rect
                                 x={predictedX}
                                 y={yPredicted}
@@ -143,7 +143,7 @@ export function ForecastChart({ slots }: ForecastChartProps) {
                                 stroke="#F5C800"
                                 strokeWidth={1.5}
                             />
-                            {/* Shortage (rot) — nur rendern, wenn positiv */}
+                            {/* Fehlbedarf (rot) — nur rendern, wenn positiv */}
                             {shortage > 0 ? (
                                 <rect
                                     x={shortageX}
@@ -183,8 +183,7 @@ export function ForecastChart({ slots }: ForecastChartProps) {
 
             {slots.every((s) => s.predicted === 0 && s.actual === 0) ? (
                 <p className="mt-3 text-center text-xs text-concrete">
-                    Noch keine Forecast-Daten. Python-Skript{" "}
-                    <code className="text-foreground/80">ml/forecast.py</code> ausführen.
+                    Noch keine Prognose verfügbar.
                 </p>
             ) : null}
         </div>
@@ -197,15 +196,15 @@ function Legend() {
         <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[0.08em] text-concrete">
             <span className="flex items-center gap-1">
                 <span className="inline-block h-3 w-3 bg-signal-yellow" />
-                Actual
+                Ist
             </span>
             <span className="flex items-center gap-1">
                 <span className="inline-block h-3 w-3 border border-signal-yellow" />
-                Predicted
+                Prognose
             </span>
             <span className="flex items-center gap-1">
                 <span className="inline-block h-3 w-3 bg-urgent-red" />
-                Shortage
+                Fehlbedarf
             </span>
         </div>
     );

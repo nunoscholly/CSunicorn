@@ -115,7 +115,7 @@ export default async function ProjectPage() {
     const sentNotifications = sentRes.data ?? [];
 
     // --- Metriken berechnen (§1.1) ---------------------------------------
-    // Active Volunteers: distinct volunteers mit laufendem Assignment.
+    // Aktive Volunteers: distinct volunteers mit laufendem Assignment.
     const activeVolunteerIds = new Set<string>();
     for (const a of assignments) {
         if (a.status === "assigned") activeVolunteerIds.add(a.volunteer_id);

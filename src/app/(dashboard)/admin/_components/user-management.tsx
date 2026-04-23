@@ -38,6 +38,8 @@ export function UserManagement({ profiles }: UserManagementProps) {
     >(null);
     const [isPending, startTransition] = useTransition();
 
+    // Zentraler Wrapper für alle mutierende Actions — spart dreifache
+    // Flash-Logik in den Inline-Callbacks und hält den Pending-State konsistent.
     function runAction(fn: () => Promise<{ ok: boolean; error?: string; message?: string }>) {
         startTransition(async () => {
             const result = await fn();
@@ -135,7 +137,7 @@ export function UserManagement({ profiles }: UserManagementProps) {
                                     colSpan={6}
                                     className="px-3 py-6 text-center text-foreground/50"
                                 >
-                                    Noch keine User im System. Leg den ersten Account über „User anlegen“ an.
+                                    Noch keine User im System. Leg den ersten Account über "User anlegen" an.
                                 </td>
                             </tr>
                         ) : (

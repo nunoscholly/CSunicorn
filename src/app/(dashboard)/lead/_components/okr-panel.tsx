@@ -1,9 +1,9 @@
 // OKR-Panel (§2.3). Drei Kennzahlen, immer live berechnet — niemals
 // gespeichert, weil sie sich aus den anderen Tabellen ableiten.
 //
-// - Stage completion %  = completed tasks in zone / total tasks in zone
-// - Crew utilisation %  = assigned volunteers / required headcount
-// - Requests closed     = filled requests / total requests by this lead
+// - Bühnen-Fortschritt %  = abgeschlossene Tasks in der Zone / alle Tasks in der Zone
+// - Team-Auslastung %     = zugewiesene Volunteers / erforderliche Kopfzahl
+// - Anfragen geschlossen  = erfüllte Anfragen / alle Anfragen dieses Leads
 
 type OkrPanelProps = {
     stageCompletionPct: number;
@@ -31,19 +31,19 @@ export function OkrPanel({
 
             <div className="grid gap-3">
                 <OkrRow
-                    label="Stage completion"
+                    label="Bühnen-Fortschritt"
                     value={`${stageCompletionPct}%`}
                     tone={tone(stageCompletionPct, 80, 50)}
                     progressPct={stageCompletionPct}
                 />
                 <OkrRow
-                    label="Crew utilisation"
+                    label="Team-Auslastung"
                     value={`${crewUtilisationPct}%`}
                     tone={tone(crewUtilisationPct, 90, 50)}
                     progressPct={crewUtilisationPct}
                 />
                 <OkrRow
-                    label="Requests closed"
+                    label="Anfragen geschlossen"
                     value={`${requestsClosed} / ${requestsTotal}`}
                     tone={tone(requestsClosedPct, 80, 50)}
                     progressPct={requestsClosedPct}
@@ -94,6 +94,8 @@ function OkrRow({
     );
 }
 
+// Gibt den Farbzustand zurück — zwei Schwellenwerte reichen für alle drei OKR-Zeilen,
+// damit die Logik nicht dreimal dupliziert wird.
 function tone(value: number, goodThreshold: number, warnThreshold: number) {
     if (value >= goodThreshold) return "good" as const;
     if (value >= warnThreshold) return "warn" as const;

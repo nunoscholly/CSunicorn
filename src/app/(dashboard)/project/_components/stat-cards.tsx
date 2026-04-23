@@ -1,5 +1,5 @@
 // Vier Key-Metrics ganz oben auf dem PM-Dashboard (§1.1):
-//   - Active Volunteers
+//   - Aktive Volunteers
 //   - Offene Anfragen
 //   - Tasks erledigt %
 //   - Coverage heute %
@@ -21,7 +21,7 @@ export function StatCards({
 }: StatCardsProps) {
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Active Volunteers" value={String(activeVolunteers)} />
+            <StatCard label="Aktive Volunteers" value={String(activeVolunteers)} />
             <StatCard label="Offene Anfragen" value={String(openRequests)} />
             <StatCard
                 label="Tasks erledigt"

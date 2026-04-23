@@ -1,4 +1,4 @@
-// Feed offener Jobs (§3.3). Cards sortiert nach Dringlichkeit.
+// Feed offener Aufgaben (§3.3). Cards sortiert nach Dringlichkeit.
 // Button-Zustand pro Karte:
 //   - "Übernehmen" (gelb) wenn Volunteer keinen aktiven Task hat UND
 //     slots_remaining > 0
@@ -57,6 +57,8 @@ export function OpenJobsFeed({ jobs, volunteerHasActiveTask }: OpenJobsFeedProps
     const [pendingId, setPendingId] = useState<string | null>(null);
     const [, startTransition] = useTransition();
 
+    // useTransition verhindert, dass der UI-Thread während des Server-Calls blockiert —
+    // der Button zeigt "Übernehme…" und bleibt klickbar für andere Karten.
     function handleCommit(taskId: string) {
         setError(null);
         setPendingId(taskId);
@@ -79,7 +81,7 @@ export function OpenJobsFeed({ jobs, volunteerHasActiveTask }: OpenJobsFeedProps
     return (
         <section className="rounded-xl border border-concrete/20 bg-surface p-6">
             <div className="mb-4">
-                <h2 className="text-lg font-bold">Offene Jobs</h2>
+                <h2 className="text-lg font-bold">Offene Aufgaben</h2>
                 <p className="text-sm text-foreground/60">
                     Ein Task gleichzeitig. Nach der Übernahme erscheint der Anruf-Button oben.
                 </p>
@@ -171,6 +173,8 @@ function JobCard({
     );
 }
 
+// Formatiert Schicht-Start/-Ende für die Kartenanzeige. de-CH damit Wochentage
+// und Zeitformat zur Zielgruppe passen (Mo., Di. statt Mon, Tue).
 function formatShift(start: string | null, end: string | null) {
     if (!start && !end) return "ohne feste Zeit";
     const dayFmt = new Intl.DateTimeFormat("de-CH", {
@@ -179,6 +183,7 @@ function formatShift(start: string | null, end: string | null) {
         minute: "2-digit",
     });
     if (start && end) {
+        // Endzeit ohne Wochentag, weil Start und Ende immer am selben Tag liegen.
         const endTime = new Intl.DateTimeFormat("de-CH", {
             hour: "2-digit",
             minute: "2-digit",
