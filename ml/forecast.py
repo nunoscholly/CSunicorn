@@ -436,12 +436,14 @@ def write_to_supabase(daily_people, daily_tasks, statuses):
     # den Imports fuer eine ausfuehrliche Erklaerung.
     load_dotenv()
 
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_KEY")
+    # Variablennamen muessen mit der .env-Datei uebereinstimmen — dieselben
+    # Namen wie im Next.js-Frontend, plus service_role fuer Schreibzugriff
+    url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
     # Ohne Credentials abbrechen statt crashen — gibt klare Fehlermeldung
     if not url or not key:
-        print("WARNUNG: SUPABASE_URL oder SUPABASE_KEY nicht gesetzt.")
+        print("WARNUNG: NEXT_PUBLIC_SUPABASE_URL oder SUPABASE_SERVICE_ROLE_KEY nicht gesetzt.")
         print("Ueberspringe Supabase-Upload. Setze Variablen in ml/.env")
         return
 
