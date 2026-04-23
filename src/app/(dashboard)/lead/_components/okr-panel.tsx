@@ -84,7 +84,14 @@ function OkrRow({
                 <span className="text-sm text-foreground/70">{label}</span>
                 <span className={`text-lg font-bold ${valueColor}`}>{value}</span>
             </div>
-            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#222]">
+            <div
+                role="progressbar"
+                aria-valuenow={progressPct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${label}: ${progressPct} Prozent`}
+                className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#222]"
+            >
                 <div
                     className={`h-full ${barColor}`}
                     style={{ width: `${Math.min(100, progressPct)}%` }}

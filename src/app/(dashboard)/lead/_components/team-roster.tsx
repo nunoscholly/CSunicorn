@@ -64,8 +64,15 @@ export function TeamRoster({
                 </span>
             </div>
 
-            {/* Coverage-Bar */}
-            <div className="mb-5 h-1.5 overflow-hidden rounded-full bg-[#222]">
+            {/* Coverage-Bar — Screenreader liest den Prozentwert vor. */}
+            <div
+                role="progressbar"
+                aria-valuenow={coveragePct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Team-Besetzung: ${coveragePct} Prozent`}
+                className="mb-5 h-1.5 overflow-hidden rounded-full bg-[#222]"
+            >
                 <div
                     className={`h-full ${barColor}`}
                     style={{ width: `${Math.min(100, coveragePct)}%` }}
@@ -107,7 +114,13 @@ function MemberCard({ member }: { member: RosterMember }) {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                         src={member.avatarUrl}
-                        alt={member.name}
+                        // Fallback-Alt, falls der Profilname fehlt — sonst
+                        // bliebe das Bild für Screenreader unsichtbar.
+                        alt={
+                            member.name
+                                ? `Profilbild von ${member.name}`
+                                : "Profilbild"
+                        }
                         className="h-full w-full object-cover"
                     />
                 ) : (

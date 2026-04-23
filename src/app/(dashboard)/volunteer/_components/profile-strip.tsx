@@ -33,7 +33,9 @@ export function ProfileStrip({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                         src={avatarUrl}
-                        alt={name}
+                        // Fallback-Alt, falls der Profilname fehlt — sonst
+                        // bliebe das Bild für Screenreader unsichtbar.
+                        alt={name ? `Profilbild von ${name}` : "Profilbild"}
                         className="h-full w-full object-cover"
                     />
                 ) : (

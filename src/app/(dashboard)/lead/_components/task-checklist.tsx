@@ -110,6 +110,7 @@ export function TaskChecklist({ tasks }: TaskChecklistProps) {
                                 ].join(" ")}
                             >
                                 <input
+                                    id={`task-${t.id}`}
                                     type="checkbox"
                                     checked={isDone}
                                     disabled={isDone || isPending}
@@ -117,14 +118,19 @@ export function TaskChecklist({ tasks }: TaskChecklistProps) {
                                     className="h-4 w-4 shrink-0 cursor-pointer accent-signal-yellow disabled:cursor-not-allowed"
                                 />
                                 <div className="min-w-0 flex-1">
-                                    <p
+                                    {/* Label mit htmlFor koppelt den Task-Namen
+                                        programmatisch an die Checkbox — Screenreader
+                                        und Click-Target profitieren davon. */}
+                                    <label
+                                        htmlFor={`task-${t.id}`}
                                         className={[
-                                            "text-sm font-bold",
+                                            "block cursor-pointer text-sm font-bold",
                                             isDone ? "line-through" : "",
+                                            isPending ? "cursor-wait" : "",
                                         ].join(" ")}
                                     >
                                         {t.task_name}
-                                    </p>
+                                    </label>
                                     <p className="text-xs text-foreground/60">
                                         {formatShift(t.shift_start, t.shift_end)}
                                     </p>

@@ -59,7 +59,13 @@ export function LoginForm() {
 
     return (
         <form onSubmit={handleSubmit} className="flex w-72 flex-col gap-4">
+            {/* Sichtbare Labels sind hier unerwünscht (minimaler Login-Look),
+                aber Screenreader brauchen sie. Daher mit sr-only ausblenden. */}
+            <label htmlFor="login-email" className="sr-only">
+                E-Mail
+            </label>
             <input
+                id="login-email"
                 type="email"
                 placeholder="E-Mail"
                 value={email}
@@ -68,7 +74,11 @@ export function LoginForm() {
                 autoComplete="email"
                 className="rounded-md border border-concrete/30 bg-surface px-4 py-2 text-foreground focus:border-signal-yellow focus:outline-none"
             />
+            <label htmlFor="login-password" className="sr-only">
+                Passwort
+            </label>
             <input
+                id="login-password"
                 type="password"
                 placeholder="Passwort"
                 value={password}

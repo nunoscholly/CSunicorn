@@ -264,9 +264,20 @@ export function BatchTaskUpload() {
                     onChange={handleFileChange}
                     className="hidden"
                 />
+                {/* Label fungiert optisch als Button. Damit Keyboard-User
+                    ihn erreichen, bekommt er tabIndex=0 und löst bei
+                    Enter/Space einen Click auf das verborgene File-Input aus. */}
                 <label
                     htmlFor="batch-task-file"
-                    className="cursor-pointer rounded-md border border-concrete/40 bg-background px-3 py-2 text-sm text-foreground/80 hover:border-signal-yellow hover:text-signal-yellow"
+                    tabIndex={0}
+                    role="button"
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            fileInputRef.current?.click();
+                        }
+                    }}
+                    className="cursor-pointer rounded-md border border-concrete/40 bg-background px-3 py-2 text-sm text-foreground/80 hover:border-signal-yellow hover:text-signal-yellow focus:border-signal-yellow focus:text-signal-yellow focus:outline-none"
                 >
                     CSV wählen
                 </label>

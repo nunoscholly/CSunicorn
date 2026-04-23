@@ -51,7 +51,14 @@ function ProgressRow({ row }: { row: ZoneProgress }) {
                     {row.completed} / {row.total} · {row.percentage}%
                 </span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-[#222]">
+            <div
+                role="progressbar"
+                aria-valuenow={row.percentage}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Fortschritt ${row.zone}: ${row.percentage} Prozent`}
+                className="h-1.5 overflow-hidden rounded-full bg-[#222]"
+            >
                 <div
                     className={`h-full ${barColor}`}
                     style={{ width: `${Math.min(100, row.percentage)}%` }}
