@@ -9,6 +9,26 @@ import { useState, useTransition, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import type { UserRole } from "@/lib/supabase/types";
 
+// Die Login-Inputs sind bewusst roh (nicht der Input-Wrapper) — daher
+// dieselbe Logik wie in components/ui/input.tsx inline: native HTML5-
+// Validierung in deutsch statt "Please fill in this field." (UX-S3).
+function applyGermanValidity(target: HTMLInputElement) {
+    const v = target.validity;
+    if (v.valid) {
+        target.setCustomValidity("");
+        return;
+    }
+    if (v.valueMissing) {
+        target.setCustomValidity("Bitte ausfüllen.");
+        return;
+    }
+    if (v.typeMismatch && target.type === "email") {
+        target.setCustomValidity("Bitte eine gültige E-Mail eingeben.");
+        return;
+    }
+    target.setCustomValidity("Bitte Eingabe prüfen.");
+}
+
 // Rollenspezifische Startseite. Admin landet bewusst auf /admin (nicht auf
 // /project), damit die Test-Flows deterministisch sind.
 const ROLE_HOME: Record<UserRole, string> = {
@@ -68,10 +88,13 @@ export function LoginForm() {
             </label>
             <input
                 id="login-email"
+                name="email"
                 type="email"
                 placeholder="E-Mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onInvalid={(e) => applyGermanValidity(e.currentTarget)}
+                onInput={(e) => e.currentTarget.setCustomValidity("")}
                 required
                 autoComplete="email"
                 className="rounded-md border border-concrete/30 bg-surface px-4 py-2 text-foreground focus:border-signal-yellow focus:outline-none"
@@ -81,10 +104,13 @@ export function LoginForm() {
             </label>
             <input
                 id="login-password"
+                name="current-password"
                 type="password"
                 placeholder="Passwort"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onInvalid={(e) => applyGermanValidity(e.currentTarget)}
+                onInput={(e) => e.currentTarget.setCustomValidity("")}
                 required
                 autoComplete="current-password"
                 className="rounded-md border border-concrete/30 bg-surface px-4 py-2 text-foreground focus:border-signal-yellow focus:outline-none"

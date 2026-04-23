@@ -22,7 +22,7 @@ type UserManagementProps = {
 // Werte nur an einer Stelle gepflegt werden müssen.
 const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
     { value: "admin", label: "Admin" },
-    { value: "pm", label: "Project Manager" },
+    { value: "pm", label: "Projekt-Management" },
     { value: "lead", label: "Team-Lead" },
     { value: "volunteer", label: "Volunteer" },
 ];
@@ -72,6 +72,9 @@ export function UserManagement({ profiles }: UserManagementProps) {
                         setShowAddForm((v) => !v);
                         setFlash(null);
                     }}
+                    // whitespace-nowrap: sonst bricht das Label auf 390-px-
+                    // Viewports in zwei Zeilen ("User / anlegen") (UI-S3).
+                    className="whitespace-nowrap"
                 >
                     {showAddForm ? "Abbrechen" : "User anlegen"}
                 </Button>
@@ -107,7 +110,12 @@ export function UserManagement({ profiles }: UserManagementProps) {
             ) : null}
 
             <div className="mt-4 overflow-x-auto">
-                <table className="w-full border-separate border-spacing-0 text-sm">
+                <table
+                    className="w-full border-separate border-spacing-0 text-sm"
+                    // Screenreader hören sonst nur "Tabelle, 6 Spalten"
+                    // ohne Kontext (A11Y-S2).
+                    aria-label="User-Verwaltung: alle Accounts"
+                >
                     <thead>
                         <tr className="text-left text-[10px] uppercase tracking-[0.1em] text-concrete">
                             <th className="border-b border-concrete/20 px-3 py-2 font-bold">
@@ -243,8 +251,14 @@ function AddUserForm({
             onSubmit={handleSubmit}
             className="grid gap-3 rounded-lg border border-concrete/20 bg-background/40 p-4 md:grid-cols-2"
         >
+            {/* id + name + autoComplete: sonst können Passwort-Manager den
+                Create-User-Flow nicht tracken und die Axe-Lint-Warnung
+                "htmlFor=undefined" schlägt an (BUG-S8 / A11Y-S1). */}
             <Input
                 label="Name"
+                id="new-user-name"
+                name="name"
+                autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -252,7 +266,10 @@ function AddUserForm({
             />
             <Input
                 label="E-Mail"
+                id="new-user-email"
+                name="email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -260,7 +277,12 @@ function AddUserForm({
             />
             <Input
                 label="Passwort (min. 8 Zeichen)"
+                id="new-user-password"
+                name="new-password"
                 type="password"
+                // "new-password" weist Passwort-Manager an, ein neues Passwort
+                // anzubieten statt das aktuelle Login-Passwort vorzuschlagen.
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -268,6 +290,8 @@ function AddUserForm({
             />
             <Select
                 label="Rolle"
+                id="new-user-role"
+                name="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
                 required
@@ -280,6 +304,10 @@ function AddUserForm({
             </Select>
             <Input
                 label="Telefon (optional)"
+                id="new-user-phone"
+                name="tel"
+                type="tel"
+                autoComplete="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+41 79 123 45 67"
@@ -384,6 +412,9 @@ function EditRow({
         <>
             <td className="border-b border-concrete/10 px-3 py-2">
                 <input
+                    // aria-label, weil kein sichtbares <label> vorhanden ist —
+                    // nur der Tabellen-Header liefert Kontext (A11Y-S5).
+                    aria-label="Name"
                     className="w-full rounded border border-concrete/30 bg-background px-2 py-1 text-sm focus:border-signal-yellow focus:outline-none"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -394,6 +425,7 @@ function EditRow({
             </td>
             <td className="border-b border-concrete/10 px-3 py-2">
                 <select
+                    aria-label="Rolle"
                     value={role}
                     onChange={(e) => setRole(e.target.value as UserRole)}
                     className="w-full rounded border border-concrete/30 bg-background px-2 py-1 text-sm focus:border-signal-yellow focus:outline-none"
@@ -407,16 +439,21 @@ function EditRow({
             </td>
             <td className="border-b border-concrete/10 px-3 py-2">
                 <input
+                    aria-label="Telefon"
                     className="w-full rounded border border-concrete/30 bg-background px-2 py-1 text-sm focus:border-signal-yellow focus:outline-none"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="—"
                 />
             </td>
-            <td className="border-b border-concrete/10 px-3 py-2 text-foreground/40">
-                {/* Status wird hier nicht editiert, um das Deaktivieren klar
-                    über den eigenen Button zu halten. */}
-                —
+            <td className="border-b border-concrete/10 px-3 py-2">
+                {/* Status bleibt auch im Edit-Modus sichtbar (read-only), sonst
+                    springt die Zeile optisch (UI-4 / UX-S4). Aktivieren /
+                    Deaktivieren läuft weiter über den eigenen Row-Button. */}
+                <StatusBadge
+                    label={profile.is_active ? "Aktiv" : "Deaktiviert"}
+                    variant={profile.is_active ? "active" : "inactive"}
+                />
             </td>
             <td className="border-b border-concrete/10 px-3 py-2">
                 <div className="flex gap-2">

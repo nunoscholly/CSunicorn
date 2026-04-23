@@ -33,7 +33,27 @@ export function SectorMap({ tiles }: SectorMapProps) {
 }
 
 function SectorTileCard({ tile }: { tile: SectorTile }) {
-    const ratio = tile.required > 0 ? tile.staffed / tile.required : 0;
+    // Edge-Case: keine offenen Plätze in dieser Zone. Ohne Guard würde die
+    // Kachel als "0 % · 0 / 0" in Rot gerendert — das liest sich wie
+    // "kritisch unterbesetzt", bedeutet aber nur "nichts zu tun" (BUG-S9).
+    if (tile.required === 0) {
+        return (
+            <div
+                className="rounded-lg border border-concrete/30 bg-background/40 p-4 text-foreground/60"
+                aria-label={`${tile.zone}: keine offenen Plätze`}
+            >
+                <div className="text-[10px] font-bold uppercase tracking-[0.08em] opacity-80">
+                    {tile.zone}
+                </div>
+                <div className="mt-1 text-sm font-bold">Keine offenen Plätze</div>
+                <div className="mt-0.5 text-xs opacity-60">
+                    Nichts zu tun hier
+                </div>
+            </div>
+        );
+    }
+
+    const ratio = tile.staffed / tile.required;
     // Regeln direkt aus docs/user_profiles.md §Volunteer-Dev-Notes.
     const tone =
         ratio >= 0.9 ? "green" : ratio >= 0.5 ? "yellow" : "red";
@@ -47,12 +67,14 @@ function SectorTileCard({ tile }: { tile: SectorTile }) {
               ? "border-signal-yellow/50 bg-signal-yellow/10 text-signal-yellow"
               : "border-urgent-red/50 bg-urgent-red/10 text-urgent-red";
 
-    const pct = tile.required > 0 ? Math.round(ratio * 100) : 0;
+    const pct = Math.round(ratio * 100);
 
     return (
         <div
             className={`rounded-lg border p-4 ${classes}`}
-            // Kein Button — die Kacheln sind informativ, nicht interaktiv.
+            // Screenreader bekommen den Status explizit — sonst kommt die
+            // Farbinfo (rot = kritisch) nicht durch (A11Y-S8).
+            aria-label={`${tile.zone}: ${pct} Prozent besetzt, ${tile.staffed} von ${tile.required}`}
         >
             <div className="text-[10px] font-bold uppercase tracking-[0.08em] opacity-80">
                 {tile.zone}

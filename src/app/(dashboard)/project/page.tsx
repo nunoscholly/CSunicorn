@@ -234,7 +234,7 @@ export default async function ProjectPage() {
             <header className="flex flex-col gap-1">
                 <h1 className="text-2xl font-bold">Projekt-Management</h1>
                 <p className="text-sm text-foreground/60">
-                    Echtzeit-Übersicht über Bemanning, Aufgaben und ML-Prognosen.
+                    Echtzeit-Übersicht über Bemannung, Aufgaben und ML-Prognosen.
                 </p>
             </header>
 

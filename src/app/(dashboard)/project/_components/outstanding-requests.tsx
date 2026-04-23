@@ -30,8 +30,12 @@ const STATUS_ORDER: Record<PmRequest["status"], number> = {
     filled: 2,
 };
 
+// "Kritisch" überdramatisierte offene Anfragen, bei denen schlicht noch
+// niemand eingeteilt ist (ox/ux_findings). "Offen" liest neutraler; der
+// "urgent"-Badge-Farbton bleibt rot, sodass Dringlichkeit visuell weiter
+// kommt.
 const STATUS_LABEL: Record<PmRequest["status"], string> = {
-    open: "Kritisch",
+    open: "Offen",
     partial: "Teilbesetzt",
     filled: "Geschlossen",
 };
@@ -133,6 +137,10 @@ export function OutstandingRequests({ requests }: OutstandingRequestsProps) {
                                                 type="button"
                                                 onClick={() => handleResolve(req.id)}
                                                 disabled={isPending}
+                                                // aria-label verankert den Button an die
+                                                // konkrete Anfrage, statt nur "Schliessen"
+                                                // dreimal zu wiederholen (A11Y-S9).
+                                                aria-label={`Anfrage ${req.zone ?? "Zone"} schliessen`}
                                                 className="text-xs font-bold uppercase tracking-[0.08em] text-signal-yellow hover:underline disabled:text-concrete"
                                             >
                                                 Schliessen

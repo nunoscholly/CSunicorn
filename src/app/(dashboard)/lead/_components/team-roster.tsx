@@ -35,11 +35,16 @@ export function TeamRoster({
     // Edge-Case: Schicht abgeschlossen (alle Tasks 'complete'). Dann ist
     // required=0 und staffed>0 — wir zeigen den Roster als 100% fertig an,
     // statt "X / 0 besetzt" mit 0% Progress (BUG-2).
+    //
+    // Math.min klammert auch den umgekehrten Fall ab: mehr eingeteilte
+    // Volunteers als offene Plätze würde sonst als 200 % angezeigt
+    // werden (BUG-S1). Kappen bei 100 %, der Roster-Header zeigt den
+    // Rohwert weiter separat ("2 / 1 besetzt").
     const shiftDone = required === 0 && staffed > 0;
     const coveragePct = shiftDone
         ? 100
         : required > 0
-          ? Math.round((staffed / required) * 100)
+          ? Math.min(100, Math.round((staffed / required) * 100))
           : 0;
 
     // Farbschwelle analog Volunteer-Sektor-Map aus docs/user_profiles.md §Volunteer:

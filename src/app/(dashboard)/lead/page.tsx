@@ -73,6 +73,10 @@ export default async function LeadPage() {
     // Notifications immer — die sind nicht team-scoped, sondern per Rolle.
     // Team-abhängige Queries nur, wenn ein Team gefunden wurde.
     const [notificationsRes, fromProfilesRes] = await Promise.all([
+        // Supabase's .or() nimmt einen PostgREST-Filter-String entgegen —
+        // echte Parametrisierung gibt's dafür nicht. user.id kommt direkt
+        // aus auth.getUser() und ist garantiert eine UUID, daher ist die
+        // Interpolation hier sicher. Nicht auf User-Input anwenden!
         supabase
             .from("notifications")
             .select("id, message, is_read, created_at, from_user_id, to_role, to_user_id")
@@ -108,14 +112,18 @@ export default async function LeadPage() {
     );
 
     // Wenn kein Team → Dashboard in Read-Only-Modus, nur Updates + Empty-States.
+    // Admin-Sonderfall: "Wende dich an einen Admin" wäre absurd, wenn der
+    // Admin selbst hier landet (UX-3). Daher rollenabhängige Copy.
     if (!team || !teamId || !zone) {
+        const isAdmin = currentProfile.role === "admin";
         return (
             <div className="space-y-8">
                 <header className="flex flex-col gap-1">
                     <h1 className="text-2xl font-bold">Team-Lead</h1>
                     <p className="text-sm text-foreground/60">
-                        Dir ist aktuell kein Team zugeordnet. Wende dich an einen
-                        Admin, um eine Zone zu bekommen.
+                        {isAdmin
+                            ? "Read-Only-Blick ins Team-Lead-Dashboard. Für den Live-Betrieb wechsle in einen Team-Lead-Account."
+                            : "Dir ist aktuell kein Team zugeordnet. Wende dich an einen Admin, um eine Zone zu bekommen."}
                     </p>
                 </header>
                 <UpdatesFeed notifications={notifications} />
@@ -234,9 +242,16 @@ export default async function LeadPage() {
     // nicht auf 0% einrasten: wenn noch Volunteers im Roster stehen, ist die
     // Schicht schlicht fertig → 100% Auslastung. Ohne diesen Guard zeigte der
     // Lead-Dashboard "2 / 0 besetzt · Team-Auslastung 0%" (BUG-2).
+    //
+    // Math.min(..., 100) klammert den Gegenfall ab: mehr Volunteers im Roster
+    // als noch offene Tasks Plätze brauchen würde sonst als 200 % angezeigt
+    // werden (BUG-S1 · Overflow-Variante).
     const crewUtilisationPct =
         requiredHeadcount > 0
-            ? Math.round((staffedAssignments / requiredHeadcount) * 100)
+            ? Math.min(
+                  100,
+                  Math.round((staffedAssignments / requiredHeadcount) * 100),
+              )
             : staffedAssignments > 0
               ? 100
               : 0;

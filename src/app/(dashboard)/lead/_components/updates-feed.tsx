@@ -56,6 +56,12 @@ export function UpdatesFeed({ notifications }: UpdatesFeedProps) {
                                 type="button"
                                 onClick={() => handleClick(n.id, n.is_read)}
                                 disabled={isPending && !n.is_read}
+                                // aria-label reicht den Lese-Status an
+                                // Screenreader durch — der gelbe Dot allein
+                                // genügt für AT nicht (A11Y-S10).
+                                aria-label={
+                                    n.is_read ? "Gelesen" : "Ungelesen"
+                                }
                                 className={[
                                     "group flex w-full items-start gap-3 rounded border px-3 py-2 text-left transition-colors",
                                     n.is_read

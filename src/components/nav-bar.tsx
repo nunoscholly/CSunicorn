@@ -21,7 +21,7 @@ type NavBarProps = {
 // Welche Routen dürfen von welcher Rolle aufgerufen werden?
 // Ableitung aus docs/user_profiles.md → Permission Matrix.
 const NAV_ITEMS: Array<{ href: string; label: string; roles: UserRole[] }> = [
-    { href: "/project", label: "Projekt-Mgmt", roles: ["admin", "pm"] },
+    { href: "/project", label: "Projektleitung", roles: ["admin", "pm"] },
     { href: "/lead", label: "Team-Lead", roles: ["admin", "lead"] },
     { href: "/volunteer", label: "Volunteer", roles: ["admin", "volunteer"] },
     { href: "/admin", label: "Admin", roles: ["admin"] },
@@ -43,10 +43,12 @@ export function NavBar({ name, role }: NavBarProps) {
 
     return (
         <header className="border-b border-concrete/20 bg-background">
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
-                <div className="flex items-center gap-8">
+            {/* flex-wrap + gap-y-2: auf 390-px-Viewports kippt der User-Block
+                unter die Navigation statt horizontal zu überlaufen (UI-S5). */}
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-y-2 gap-x-4 px-4 py-3 sm:px-6">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-1 sm:gap-x-8">
                     <Logo size="sm" />
-                    <nav className="flex items-center gap-1">
+                    <nav className="flex flex-wrap items-center gap-1">
                         {visibleItems.map((item) => {
                             const isActive = pathname.startsWith(item.href);
                             return (
@@ -66,9 +68,14 @@ export function NavBar({ name, role }: NavBarProps) {
                         })}
                     </nav>
                 </div>
-                <div className="flex items-center gap-4">
-                    <div className="hidden items-center gap-2 sm:flex">
-                        <span className="text-sm text-foreground/70">{name}</span>
+                <div className="flex items-center gap-3">
+                    {/* Name-Text nur ab sm sichtbar; RoleBadge bleibt immer
+                        dran, damit man auch auf dem Handy sofort sieht, als
+                        welche Rolle man eingeloggt ist (BUG-S4). */}
+                    <div className="flex items-center gap-2">
+                        <span className="hidden text-sm text-foreground/70 sm:inline">
+                            {name}
+                        </span>
                         <RoleBadge role={role} />
                     </div>
                     <button

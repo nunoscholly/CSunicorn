@@ -253,7 +253,14 @@ export function BatchTaskUpload() {
             <div className="mb-4">
                 <h2 className="text-lg font-bold">Bauplan-Import</h2>
                 <p className="text-sm text-foreground/60">
-                    CSV mit Spalten: {REQUIRED_COLUMNS.join(", ")}. All-or-nothing.
+                    CSV hochladen — entweder alle Zeilen werden importiert oder
+                    bei Fehlern gar keine.
+                </p>
+                <p className="mt-1 text-xs text-concrete">
+                    Benötigte Spalten:{" "}
+                    <code className="rounded bg-background/60 px-1 py-0.5">
+                        {REQUIRED_COLUMNS.join(", ")}
+                    </code>
                 </p>
             </div>
 
