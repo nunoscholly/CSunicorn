@@ -8,7 +8,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/supabase/types";
 import { ZONES, type Zone } from "@/lib/zones";
 import { StatCards } from "./_components/stat-cards";
-import { ForecastChart, type ForecastSlot } from "./_components/forecast-chart";
+import { ForecastChart, type ForecastDay } from "./_components/forecast-chart";
 import {
     ZoneProgressList,
     type ZoneProgress,
@@ -29,6 +29,17 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
+function isShiftActiveAt(
+    shiftStart: string | null,
+    shiftEnd: string | null,
+    slotMidpoint: Date,
+) {
+    if (!shiftStart || !shiftEnd) return false;
+    const start = new Date(shiftStart).getTime();
+    const end = new Date(shiftEnd).getTime();
+    const mid = slotMidpoint.getTime();
+    return start <= mid && mid < end;
+}
 
 export default async function ProjectPage() {
     const supabase = await createSupabaseServerClient();
@@ -77,7 +88,8 @@ export default async function ProjectPage() {
             ),
         supabase
             .from("forecasts")
-            .select("zone, day, predicted_people, status, tasks_active, generated_at"),
+            .select("day, predicted_people, status, tasks_active")
+            .order("day", { ascending: true }),
         supabase
             .from("profiles")
             .select("id, name, role, is_active")
@@ -150,52 +162,14 @@ export default async function ProjectPage() {
         return { zone: zone as Zone, completed, total, percentage };
     });
 
-    // --- Forecast-Chart (§1.2) — tagesbasiert ab Migration 010 ----------
-    // Pro Tag: predicted = Summe predicted_people über alle Zonen.
-    // actual = Summe der Assignments für Tasks dieses Tages.
-    const assignmentByTask = new Map<string, number>();
-    for (const a of assignments) {
-        if (a.status !== "assigned") continue;
-        assignmentByTask.set(
-            a.task_id,
-            (assignmentByTask.get(a.task_id) ?? 0) + 1,
-        );
-    }
-
-    // Alle vorhandenen Tage aus den Forecast-Daten extrahieren.
-    const forecastDays = Array.from(
-        new Set(forecasts.map((f) => f.day).filter((d): d is number => d != null)),
-    ).sort((a, b) => a - b);
-
-    const forecastSlots: ForecastSlot[] = forecastDays.map((day) => {
-        const dayForecasts = forecasts.filter((f) => f.day === day);
-        const predicted = dayForecasts.reduce(
-            (sum, f) => sum + (f.predicted_people ?? 0),
-            0,
-        );
-
-        // Actual: Assignments für Tasks, deren day-Feld oder shift_start
-        // auf diesen Build-Week-Tag fallen.
-        let actual = 0;
-        for (const t of tasks) {
-            // Prüfe ob der Task zu diesem Tag gehört (day-Feld oder heutiger Tag)
-            const taskDay = (t as Record<string, unknown>).day as number | null;
-            const matchesDay = taskDay === day;
-            // Fallback: wenn kein day-Feld, nutze shift_start am heutigen Datum
-            const matchesToday =
-                !taskDay && day === 1 && t.shift_start &&
-                new Date(t.shift_start) >= todayStart &&
-                new Date(t.shift_start) < todayEnd;
-            if (matchesDay || matchesToday) {
-                actual += assignmentByTask.get(t.id) ?? 0;
-            }
-        }
-
-        // Erste 4 Tage gelten als "Vergangenheit" in den Demo-Daten
-        const isFuture = day > 4;
-
-        return { label: `Tag ${day}`, actual, predicted, isFuture };
-    });
+    // --- Forecast-Chart (§1.2) -------------------------------------------
+    // ML-Tagesprognose: pro Tag (1–9) die vorhergesagte Personenzahl.
+    const forecastDays: ForecastDay[] = forecasts.map((f) => ({
+        day: f.day as number,
+        predictedPeople: f.predicted_people as number,
+        status: f.status as "on_track" | "at_risk" | "behind",
+        tasksActive: (f.tasks_active as string) || "",
+    }));
 
     // --- Leads für Notification-Composer ---------------------------------
     const leads = profiles
@@ -237,7 +211,7 @@ export default async function ProjectPage() {
                 coverageTodayPct={coverageTodayPct}
             />
 
-            <ForecastChart slots={forecastSlots} />
+            <ForecastChart days={forecastDays} />
 
             <div className="grid gap-8 lg:grid-cols-2">
                 <ZoneProgressList rows={zoneProgress} />

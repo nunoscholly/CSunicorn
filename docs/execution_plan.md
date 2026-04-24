@@ -104,20 +104,26 @@ Simplest role, proves the full data flow.
 
 ---
 
-### Phase 6 — ML Forecast
+### Phase 6 — ML Forecast + Dynamic Scheduling
 
-Grading linchpin for criterion #5. Stays inside W10–W11 constraints.
+Grading linchpin for criterion #5. Two parts: ML prediction (course-taught) + scheduling logic (basic Python).
 
-1. `ml/sample_data/historical_shifts.csv` — synthetic training data
-2. `ml/forecast.py`:
-   - Load CSV with pandas
-   - One-hot encode zones manually (no OneHotEncoder)
-   - `train_test_split(test_size=0.30, random_state=42)`
-   - `LinearRegression().fit(X_train, y_train)`
-   - Predict headcount per zone × slot
-   - Write results to `forecasts` table via supabase-py
-   - Report R² score
-3. Forecast chart on PM Dashboard — grouped bar chart rendered via Next.js (Chart.js or similar)
+1. **Data:** `docs/ml_info/start_summit_volunteer_shifts.csv` — real historical data from 3 years (2024–2026), ~44 tasks with dependencies, people counts, durations
+2. **`ml/forecast.py` — Part A (ML):**
+   - Load CSV, reshape into ~132 rows (task × year)
+   - Features: `people_count`, `day`, task category flags (setup/show/teardown)
+   - Target: `duration_hours`
+   - `train_test_split(test_size=0.30, random_state=42)`, `StandardScaler`, `LinearRegression`
+   - Evaluate with R² score, compare against `DummyClassifier` baseline
+   - Predict duration for each 2026 task given planned crew size
+3. **`ml/forecast.py` — Part B (Scheduling):**
+   - Build dependency graph (DAG) from CSV's roadblocking column
+   - Walk graph forward: use ML-predicted durations to compute daily people needed
+   - If a task is delayed → downstream tasks shift → daily forecast recalculates
+   - Write per-day workforce forecast to `forecasts` table via supabase-py
+4. **PM Dashboard:** Daily workforce chart — predicted people needed per day, color-coded by on-track / behind schedule
+
+Full spec: `docs/ml_plan.md`
 
 **Grading hooks:** #5 (ML), #3 (chart)
 
@@ -160,8 +166,8 @@ Covers grading criterion #2 "API + DB".
 
 1. **Next.js replaces Streamlit.** Addresses professor's multi-user concerns. Supabase remains as approved.
 2. **Auth via Supabase Auth.** No custom password hashing.
-3. **LinearRegression over RandomForest.** RandomForest isn't in the W10 allowed list.
+3. **LinearRegression for duration prediction.** Stays within W10–W11 scope. RandomForest forbidden.
 4. **Google Sheets CSV URL over SDK.** Plain `fetch`/`requests.get` fits W6 pattern.
-5. **Synthetic historical data.** No real past data exists — generate plausible CSV.
+5. **Real historical data (2024–2026).** 3 years of Start Summit build week task data. ML predicts durations, scheduling logic computes daily workforce needs.
 6. **Python writes to Supabase, Next.js reads.** No direct Python↔Next.js communication needed.
 7. **No Supabase Realtime / Storage / Edge Functions.** Plain REST + page refresh.

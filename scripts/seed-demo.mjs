@@ -973,42 +973,21 @@ const DEMO_NOTIFICATIONS = [
 ];
 
 // ============================================================
-// Forecasts (7 Zonen x 9 Tage = 63 Rows, neues Schema ab Migration 010)
+// Forecasts (9 Tage, neues Schema ab Migration 010 — tagesbasiert)
 // ============================================================
-const FORECAST_ZONES = [
-  "Stage A",
-  "Stage B",
-  "Catering",
-  "Entrance",
-  "Backstage",
-  "AV/Tech",
-  "Main Hall",
+// Pro Tag eine Zeile: predicted_people, status, tasks_active (als Text).
+// Schema vom ML-Kollegen: kein zone-Feld, status = on_track/at_risk/behind.
+const DEMO_FORECASTS = [
+  { day: 1, predicted_people: 24, status: "on_track", tasks_active: "Traverse, Buehne, Kueche, Tresen, Technik-Raum" },
+  { day: 2, predicted_people: 33, status: "on_track", tasks_active: "Licht, Kabel, Geschirr, Badges, Backstage-Catering, Mischpult" },
+  { day: 3, predicted_people: 35, status: "on_track", tasks_active: "Sound-Check, Moderatorenpult, Mittagsservice, Kameras, Teppich" },
+  { day: 4, predicted_people: 38, status: "on_track", tasks_active: "Stuhlreihen, Podium, Beleuchtung, Streaming, Nachmittags-Empfang" },
+  { day: 5, predicted_people: 30, status: "at_risk",  tasks_active: "Green Room, Notausgaenge, Funkmikros, Beamer" },
+  { day: 6, predicted_people: 28, status: "on_track", tasks_active: "Rueckwand, Monitore, Wegweiser, Garderobe" },
+  { day: 7, predicted_people: 32, status: "on_track", tasks_active: "Buehnendeko, Kuehlware, Kuenstlerempfang, Sicherheitscheck" },
+  { day: 8, predicted_people: 25, status: "at_risk",  tasks_active: "Fruehstuecksservice, Strom, Empfangstresen" },
+  { day: 9, predicted_people: 15, status: "behind",   tasks_active: "Abbau, Endreinigung" },
 ];
-
-// Vorhergesagte Personenzahl pro Zone fuer Tag 1–9 der Build-Week
-const FORECAST_BY_DAY = {
-  "Stage A":   [3, 4, 5, 5, 4, 4, 5, 4, 2],
-  "Stage B":   [4, 5, 5, 5, 4, 4, 3, 3, 2],
-  Catering:    [4, 5, 6, 6, 6, 5, 4, 4, 2],
-  Entrance:    [3, 4, 3, 3, 3, 3, 3, 2, 1],
-  Backstage:   [2, 3, 3, 3, 3, 3, 3, 2, 1],
-  "AV/Tech":   [3, 4, 4, 4, 3, 3, 3, 3, 2],
-  "Main Hall": [5, 8, 7, 7, 6, 5, 5, 4, 2],
-};
-
-const DEMO_FORECASTS = [];
-for (const zone of FORECAST_ZONES) {
-  const values = FORECAST_BY_DAY[zone];
-  for (let day = 1; day <= 9; day++) {
-    DEMO_FORECASTS.push({
-      zone,
-      day,
-      predicted_people: values[day - 1],
-      status: day <= 4 ? "confirmed" : "pending",
-      tasks_active: Math.max(1, Math.floor(values[day - 1] / 2)),
-    });
-  }
-}
 
 // ============================================================
 // Hauptlogik

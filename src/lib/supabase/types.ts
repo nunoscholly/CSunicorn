@@ -47,16 +47,14 @@ export type Task = {
     created_at: string;
 };
 
-// Forecast-Typ: ab Migration 010 tagesbasiert statt Slot-basiert.
-export type ForecastStatus = "pending" | "confirmed" | "outdated";
+export type ForecastStatus = "on_track" | "at_risk" | "behind";
 
 export type Forecast = {
     id: string;
-    zone: string;
-    day: number | null;
+    day: number;
     predicted_people: number;
     status: ForecastStatus;
-    tasks_active: number;
+    tasks_active: string | null;
     generated_at: string;
 };
 

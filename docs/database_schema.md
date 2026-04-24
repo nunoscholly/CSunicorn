@@ -91,9 +91,10 @@ Extends Supabase `auth.users` — never duplicate auth data.
 | Column | Type | Notes |
 |---|---|---|
 | `id` | UUID · PK · DEFAULT gen_random_uuid() | |
-| `zone` | TEXT | |
-| `shift_slot` | TEXT | e.g., "09:00", "11:00" |
-| `predicted_count` | INTEGER | ML model output |
+| `day` | INTEGER · UNIQUE | Build week day (1–9). CHECK 1–9 |
+| `predicted_people` | INTEGER | ML-predicted total people needed |
+| `status` | TEXT · DEFAULT 'on_track' | `on_track` \| `at_risk` \| `behind` |
+| `tasks_active` | TEXT | Comma-separated active task names |
 | `generated_at` | TIMESTAMPTZ · DEFAULT now() | |
 
 ### config
