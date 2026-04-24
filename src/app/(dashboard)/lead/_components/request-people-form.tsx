@@ -21,7 +21,10 @@ export type LeadRequest = {
 
 type RequestPeopleFormProps = {
     zone: string | null;
-    disabled: boolean; // true, wenn kein Team zugeordnet
+    disabled: boolean; // true, wenn kein Team zugeordnet oder Admin-Read-Only
+    // Optionaler Grund, der neben dem Button angezeigt wird — ohne Angabe
+    // kommt der Default "Kein Team zugeordnet." aus Lead-Perspektive.
+    disabledReason?: string;
     requests: LeadRequest[];
 };
 
@@ -42,6 +45,7 @@ const STATUS_VARIANT: Record<
 export function RequestPeopleForm({
     zone,
     disabled,
+    disabledReason,
     requests,
 }: RequestPeopleFormProps) {
     const [peopleNeeded, setPeopleNeeded] = useState("1");
@@ -153,7 +157,7 @@ export function RequestPeopleForm({
                     </Button>
                     {disabled ? (
                         <span className="text-sm text-concrete">
-                            Kein Team zugeordnet.
+                            {disabledReason ?? "Kein Team zugeordnet."}
                         </span>
                     ) : null}
                     {flash ? (

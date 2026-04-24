@@ -28,6 +28,7 @@ import {
     RequestPeopleForm,
     type LeadRequest,
 } from "./_components/request-people-form";
+import { AdminTeamPicker } from "./_components/admin-team-picker";
 
 export const metadata = {
     title: "Team-Lead · START CREW",
@@ -35,7 +36,12 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function LeadPage() {
+// Next 15+ reicht searchParams als Promise durch — daher async auflösen.
+type LeadPageProps = {
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function LeadPage({ searchParams }: LeadPageProps) {
     const supabase = await createSupabaseServerClient();
 
     // --- Rollen-Guard -----------------------------------------------------
@@ -57,14 +63,42 @@ export default async function LeadPage() {
         redirect("/");
     }
 
-    // --- Team/Zone des Leads finden --------------------------------------
-    // Lead: teams.lead_id = user.id. Admin: evtl. kein Team — dann zeigen wir
-    // eine deutliche Info-Karte statt leerer Sektionen.
-    const { data: team } = await supabase
-        .from("teams")
-        .select("id, name, zone")
-        .eq("lead_id", user.id)
-        .maybeSingle<{ id: string; name: string; zone: string }>();
+    const isAdmin = currentProfile.role === "admin";
+
+    // --- Team/Zone auflösen ----------------------------------------------
+    // Lead: genau sein eigenes Team über teams.lead_id = user.id.
+    // Admin: alle Teams laden und das aktuell angezeigte entweder aus
+    // ?team=<id> (Picker-Auswahl) oder als erstes aus der Liste ziehen.
+    // Ohne den Admin-Zweig landete der Admin im Read-Only-Leerzustand,
+    // obwohl er laut Rollen-Matrix lesen darf (docs/user_profiles.md).
+    let team: { id: string; name: string; zone: string } | null = null;
+    let allTeams: Array<{ id: string; name: string; zone: string }> = [];
+
+    if (isAdmin) {
+        const { data: teams } = await supabase
+            .from("teams")
+            .select("id, name, zone")
+            .order("name", { ascending: true });
+        allTeams = teams ?? [];
+
+        const resolvedParams = (await searchParams) ?? {};
+        const rawTeamParam = resolvedParams.team;
+        const requestedTeamId = Array.isArray(rawTeamParam)
+            ? rawTeamParam[0]
+            : rawTeamParam;
+
+        team =
+            allTeams.find((t) => t.id === requestedTeamId) ??
+            allTeams[0] ??
+            null;
+    } else {
+        const { data: leadTeam } = await supabase
+            .from("teams")
+            .select("id, name, zone")
+            .eq("lead_id", user.id)
+            .maybeSingle<{ id: string; name: string; zone: string }>();
+        team = leadTeam ?? null;
+    }
 
     const teamId = team?.id ?? null;
     const zone = team?.zone ?? null;
@@ -111,18 +145,17 @@ export default async function LeadPage() {
         }),
     );
 
-    // Wenn kein Team → Dashboard in Read-Only-Modus, nur Updates + Empty-States.
-    // Admin-Sonderfall: "Wende dich an einen Admin" wäre absurd, wenn der
-    // Admin selbst hier landet (UX-3). Daher rollenabhängige Copy.
+    // Leerzustand: Lead ohne Team ODER Admin ohne irgendein Team in der DB.
+    // Für Admins mit mindestens einem Team greift die Auflösung weiter oben
+    // und wir fallen nie hier rein.
     if (!team || !teamId || !zone) {
-        const isAdmin = currentProfile.role === "admin";
         return (
             <div className="space-y-8">
                 <header className="flex flex-col gap-1">
                     <h1 className="text-2xl font-bold">Team-Lead</h1>
                     <p className="text-sm text-foreground/60">
                         {isAdmin
-                            ? "Read-Only-Blick ins Team-Lead-Dashboard. Für den Live-Betrieb wechsle in einen Team-Lead-Account."
+                            ? "Noch keine Teams angelegt. Leg im Admin-Bereich ein Team an, um diese Ansicht zu füllen."
                             : "Dir ist aktuell kein Team zugeordnet. Wende dich an einen Admin, um eine Zone zu bekommen."}
                     </p>
                 </header>
@@ -268,12 +301,24 @@ export default async function LeadPage() {
     // --- Render ----------------------------------------------------------
     return (
         <div className="space-y-8">
-            <header className="flex flex-col gap-1">
-                <h1 className="text-2xl font-bold">
-                    {team.name} · {zone}
-                </h1>
+            <header className="flex flex-col gap-2">
+                <div className="flex flex-wrap items-baseline justify-between gap-3">
+                    <h1 className="text-2xl font-bold">
+                        {team.name} · {zone}
+                    </h1>
+                    {/* Admin bekommt den Team-Switcher; Lead sieht nur sein
+                        eigenes Team, daher für die Rolle weggelassen. */}
+                    {isAdmin && allTeams.length > 1 ? (
+                        <AdminTeamPicker
+                            teams={allTeams}
+                            selectedTeamId={team.id}
+                        />
+                    ) : null}
+                </div>
                 <p className="text-sm text-foreground/60">
-                    Deine Zone, dein Team, deine Aufgaben.
+                    {isAdmin
+                        ? "Read-Only-Blick: wähle oben ein anderes Team zum Inspizieren."
+                        : "Deine Zone, dein Team, deine Aufgaben."}
                 </p>
             </header>
 
@@ -300,7 +345,12 @@ export default async function LeadPage() {
 
             <RequestPeopleForm
                 zone={zone}
-                disabled={false}
+                disabled={isAdmin}
+                disabledReason={
+                    isAdmin
+                        ? "Admin-Read-Only. Zum Stellen einer Anfrage im Team-Lead-Account einloggen."
+                        : undefined
+                }
                 requests={requests}
             />
         </div>
