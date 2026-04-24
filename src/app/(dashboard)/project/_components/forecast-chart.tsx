@@ -195,8 +195,8 @@ export function ForecastChart({ days }: ForecastChartProps) {
             {/* Leerer Zustand: erscheint wenn das Python-Skript noch nicht gelaufen ist */}
             {days.length === 0 ? (
                 <p className="mt-3 text-center text-xs text-concrete">
-                    Noch keine Forecast-Daten. Python-Skript{" "}
-                    <code className="text-foreground/80">ml/forecast.py</code> ausführen.
+                    Noch keine Forecast-Daten. Forecast wird automatisch
+                    aktualisiert sobald Aufgaben geändert werden.
                 </p>
             ) : null}
         </div>

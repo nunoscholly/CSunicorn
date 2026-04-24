@@ -13,6 +13,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/lib/supabase/types";
 import { ZONES, type Zone } from "@/lib/zones";
+import { triggerForecastUpdate } from "@/lib/forecast-trigger";
 
 export type ActionResult<T = undefined> =
     | { ok: true; data?: T }
@@ -103,7 +104,8 @@ export async function markTaskCompleteAction(
     if (error) return { ok: false, error: error.message };
 
     revalidatePath("/lead");
-    revalidatePath("/project"); // PM-Dashboard-Fortschritt aktualisieren.
+    revalidatePath("/project");
+    await triggerForecastUpdate();
     return { ok: true };
 }
 

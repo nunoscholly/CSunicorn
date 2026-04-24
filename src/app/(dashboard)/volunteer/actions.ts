@@ -25,6 +25,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { UserRole } from "@/lib/supabase/types";
+import { triggerForecastUpdate } from "@/lib/forecast-trigger";
 
 export type ActionResult<T = undefined> =
     | { ok: true; data?: T }
@@ -180,7 +181,8 @@ export async function commitToTaskAction(
     }
 
     revalidatePath("/volunteer");
-    revalidatePath("/lead"); // Lead sieht den neuen Volunteer im Roster.
-    revalidatePath("/project"); // PM-Dashboard aktualisiert Coverage.
+    revalidatePath("/lead");
+    revalidatePath("/project");
+    await triggerForecastUpdate();
     return { ok: true, data: { remaining: newRemaining } };
 }

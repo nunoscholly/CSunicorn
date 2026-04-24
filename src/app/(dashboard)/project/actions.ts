@@ -14,6 +14,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { TaskPriority, UserRole } from "@/lib/supabase/types";
 import { ZONES, type Zone } from "@/lib/zones";
+import { triggerForecastUpdate } from "@/lib/forecast-trigger";
 
 export type ActionResult<T = undefined> =
     | { ok: true; data?: T }
@@ -115,7 +116,8 @@ export async function createTaskAction(
     }
 
     revalidatePath("/project");
-    revalidatePath("/volunteer"); // Open-Jobs-Feed für Volunteers aktualisieren.
+    revalidatePath("/volunteer");
+    await triggerForecastUpdate();
     return { ok: true, data: { taskId: data.id } };
 }
 

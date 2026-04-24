@@ -14,6 +14,7 @@ import path from "node:path";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { UserRole, TaskPriority } from "@/lib/supabase/types";
+import { triggerForecastUpdate } from "@/lib/forecast-trigger";
 
 // Einheitlicher Rückgabetyp, den die Client Components auswerten.
 // "ok" → Erfolg, optional mit Daten. "error" → Klartext-Meldung für den User.
@@ -304,5 +305,6 @@ export async function bulkInsertTasksAction(
 
     revalidatePath("/admin");
     revalidatePath("/project");
+    await triggerForecastUpdate();
     return { ok: true, data: { inserted: count ?? rows.length } };
 }
