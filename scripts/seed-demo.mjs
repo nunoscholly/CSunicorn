@@ -315,10 +315,13 @@ function todayAt(time) {
 }
 
 // ============================================================
-// Tasks (gleiche Daten wie Migration 008)
+// Tasks — Build-Week-Fortschritt simulieren
 // ============================================================
+// Verteilung: Pro Zone mind. 80 % der Tasks abgeschlossen, damit die
+// Fortschrittsbalken und Coverage-Werte im PM-Dashboard gruen leuchten.
+// 1 offener Task pro Zone bleibt zum Testen interaktiver Features.
 const DEMO_TASKS = [
-  // Stage A
+  // ---- Stage A (4 complete + 1 open = 80 %) ----
   {
     id: "00000000-0000-4000-a000-000000000001",
     zone: "Stage A",
@@ -329,22 +332,46 @@ const DEMO_TASKS = [
     slots_remaining: 0,
     priority: "normal",
     status: "complete",
-    description:
-      "Haupt-Traverse Stage A montieren und auf Zielhoehe ziehen.",
+    description: "Haupt-Traverse Stage A montieren und auf Zielhoehe ziehen.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
     id: "00000000-0000-4000-a000-000000000002",
     zone: "Stage A",
     task_name: "Licht einstellen [DEMO]",
-    shift_start: todayAt("13:00"),
-    shift_end: todayAt("17:00"),
+    shift_start: todayAt("10:00"),
+    shift_end: todayAt("12:00"),
     people_needed: 3,
-    slots_remaining: 1,
-    priority: "warning",
-    status: "open",
-    description:
-      "Movinglights auf Presets programmieren, Fokus-Run nach Skript.",
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Movinglights auf Presets programmieren, Fokus-Run nach Skript.",
+    created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000004",
+    zone: "Stage A",
+    task_name: "Strom verkabeln [DEMO]",
+    shift_start: todayAt("08:00"),
+    shift_end: todayAt("10:00"),
+    people_needed: 3,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Stromverteilung fuer Licht- und Tontechnik verkabeln.",
+    created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000005",
+    zone: "Stage A",
+    task_name: "Buehnendeko montieren [DEMO]",
+    shift_start: todayAt("12:00"),
+    shift_end: todayAt("13:00"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Banner und Branding-Elemente an der Buehne anbringen.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
@@ -354,13 +381,13 @@ const DEMO_TASKS = [
     shift_start: todayAt("17:00"),
     shift_end: todayAt("19:00"),
     people_needed: 3,
-    slots_remaining: 3,
-    priority: "critical",
+    slots_remaining: 1,
+    priority: "warning",
     status: "open",
     description: "Line-Check, Gainstaging, Playback-Test.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
-  // Stage B
+  // ---- Stage B (4 complete + 1 open = 80 %) ----
   {
     id: "00000000-0000-4000-a000-000000000011",
     zone: "Stage B",
@@ -371,23 +398,47 @@ const DEMO_TASKS = [
     slots_remaining: 0,
     priority: "normal",
     status: "complete",
-    description:
-      "Modulbuehne Stage B stellen und Rueckwand montieren.",
+    description: "Modulbuehne Stage B stellen und Rueckwand montieren.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
     id: "00000000-0000-4000-a000-000000000012",
     zone: "Stage B",
     task_name: "Kabel verlegen [DEMO]",
-    shift_start: todayAt("12:00"),
-    shift_end: todayAt("15:00"),
+    shift_start: todayAt("11:00"),
+    shift_end: todayAt("13:00"),
     people_needed: 4,
-    slots_remaining: 2,
-    priority: "warning",
-    status: "open",
-    description:
-      "Audio- und Netzkabel zur FoH ziehen und saubern abkleben.",
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Audio- und Netzkabel zur FoH ziehen und sauber abkleben.",
     created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000014",
+    zone: "Stage B",
+    task_name: "Monitore aufstellen [DEMO]",
+    shift_start: todayAt("13:00"),
+    shift_end: todayAt("14:00"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Wedge-Monitore positionieren und verkabeln.",
+    created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000015",
+    zone: "Stage B",
+    task_name: "Rueckwand branden [DEMO]",
+    shift_start: todayAt("11:00"),
+    shift_end: todayAt("12:00"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Sponsor-Banner an der Rueckwand befestigen.",
+    created_by: "00000000-0000-4000-8000-000000000003",
   },
   {
     id: "00000000-0000-4000-a000-000000000013",
@@ -396,13 +447,13 @@ const DEMO_TASKS = [
     shift_start: todayAt("15:00"),
     shift_end: todayAt("16:30"),
     people_needed: 2,
-    slots_remaining: 2,
+    slots_remaining: 1,
     priority: "normal",
     status: "open",
     description: "Pult aufstellen, Mikro und Wasser bereitstellen.",
     created_by: "00000000-0000-4000-8000-000000000003",
   },
-  // Catering
+  // ---- Catering (4 complete + 1 open = 80 %) ----
   {
     id: "00000000-0000-4000-a000-000000000021",
     zone: "Catering",
@@ -417,19 +468,58 @@ const DEMO_TASKS = [
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
+    id: "00000000-0000-4000-a000-000000000023",
+    zone: "Catering",
+    task_name: "Geschirr bereitstellen [DEMO]",
+    shift_start: todayAt("09:00"),
+    shift_end: todayAt("10:00"),
+    people_needed: 3,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Teller, Besteck und Glaeser an die Stationen verteilen.",
+    created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000024",
+    zone: "Catering",
+    task_name: "Fruehstuecksservice [DEMO]",
+    shift_start: todayAt("07:00"),
+    shift_end: todayAt("09:30"),
+    people_needed: 4,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Kaffee, Gipfeli und Obst an die Crew ausgeben.",
+    created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000025",
+    zone: "Catering",
+    task_name: "Kuehlware einraeumen [DEMO]",
+    shift_start: todayAt("06:00"),
+    shift_end: todayAt("07:00"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Lieferung annehmen und Kuehlware einsortieren.",
+    created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
     id: "00000000-0000-4000-a000-000000000022",
     zone: "Catering",
     task_name: "Mittagsservice [DEMO]",
     shift_start: todayAt("11:30"),
     shift_end: todayAt("14:00"),
-    people_needed: 8,
-    slots_remaining: 8,
+    people_needed: 6,
+    slots_remaining: 2,
     priority: "warning",
     status: "open",
     description: "Mittagessen an Buildweek-Crew ausgeben.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
-  // Entrance
+  // ---- Entrance (4 complete + 1 open = 80 %) ----
   {
     id: "00000000-0000-4000-a000-000000000031",
     zone: "Entrance",
@@ -450,13 +540,52 @@ const DEMO_TASKS = [
     shift_start: todayAt("09:00"),
     shift_end: todayAt("11:00"),
     people_needed: 4,
-    slots_remaining: 4,
+    slots_remaining: 0,
     priority: "normal",
-    status: "open",
+    status: "complete",
     description: "Badges alphabetisch nach Firma vorsortieren.",
     created_by: "00000000-0000-4000-8000-000000000003",
   },
-  // Backstage
+  {
+    id: "00000000-0000-4000-a000-000000000033",
+    zone: "Entrance",
+    task_name: "Wegweiser aufstellen [DEMO]",
+    shift_start: todayAt("08:00"),
+    shift_end: todayAt("09:00"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Richtungsschilder im Foyer und Aussenbereich aufstellen.",
+    created_by: "00000000-0000-4000-8000-000000000003",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000034",
+    zone: "Entrance",
+    task_name: "Garderobe einrichten [DEMO]",
+    shift_start: todayAt("07:00"),
+    shift_end: todayAt("08:30"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Garderobenstaender aufstellen und Nummern verteilen.",
+    created_by: "00000000-0000-4000-8000-000000000003",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000035",
+    zone: "Entrance",
+    task_name: "Nachmittags-Empfang [DEMO]",
+    shift_start: todayAt("13:00"),
+    shift_end: todayAt("15:00"),
+    people_needed: 3,
+    slots_remaining: 1,
+    priority: "normal",
+    status: "open",
+    description: "Nachmittags-Gaeste empfangen und Badges ausgeben.",
+    created_by: "00000000-0000-4000-8000-000000000003",
+  },
+  // ---- Backstage (4 complete + 1 open = 80 %) ----
   {
     id: "00000000-0000-4000-a000-000000000041",
     zone: "Backstage",
@@ -464,11 +593,49 @@ const DEMO_TASKS = [
     shift_start: todayAt("10:00"),
     shift_end: todayAt("13:00"),
     people_needed: 3,
-    slots_remaining: 1,
-    priority: "warning",
-    status: "open",
-    description:
-      "Kuehlschraenke bestuecken, Getraenke nachliefern.",
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Kuehlschraenke bestuecken, Getraenke nachliefern.",
+    created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000043",
+    zone: "Backstage",
+    task_name: "Kuenstlerempfang vorbereiten [DEMO]",
+    shift_start: todayAt("08:00"),
+    shift_end: todayAt("10:00"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Willkommens-Pakete und Ablaufplaene bereitstellen.",
+    created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000044",
+    zone: "Backstage",
+    task_name: "Technik-Raum aufsetzen [DEMO]",
+    shift_start: todayAt("07:00"),
+    shift_end: todayAt("09:00"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Router, Drucker und Monitore im Backstage-Office einrichten.",
+    created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000045",
+    zone: "Backstage",
+    task_name: "Sicherheitscheck Backstage [DEMO]",
+    shift_start: todayAt("09:00"),
+    shift_end: todayAt("10:00"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Fluchtwege und Feuerloescher im Backstage pruefen.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
@@ -478,14 +645,13 @@ const DEMO_TASKS = [
     shift_start: todayAt("13:00"),
     shift_end: todayAt("15:00"),
     people_needed: 2,
-    slots_remaining: 2,
+    slots_remaining: 1,
     priority: "normal",
     status: "open",
-    description:
-      "Sofa stellen, Getraenke, WLAN-Codes ausdrucken.",
+    description: "Sofa stellen, Getraenke, WLAN-Codes ausdrucken.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
-  // AV/Tech
+  // ---- AV/Tech (4 complete + 1 open = 80 %) ----
   {
     id: "00000000-0000-4000-a000-000000000051",
     zone: "AV/Tech",
@@ -493,11 +659,49 @@ const DEMO_TASKS = [
     shift_start: todayAt("09:00"),
     shift_end: todayAt("12:00"),
     people_needed: 4,
-    slots_remaining: 2,
-    priority: "critical",
-    status: "open",
-    description:
-      "Drei Kameras aufstellen, Stream-Preview checken.",
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Drei Kameras aufstellen, Stream-Preview checken.",
+    created_by: "00000000-0000-4000-8000-000000000003",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000053",
+    zone: "AV/Tech",
+    task_name: "Mischpult konfigurieren [DEMO]",
+    shift_start: todayAt("07:00"),
+    shift_end: todayAt("09:00"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Audio-Mischpult einschalten, Presets laden, Testton fahren.",
+    created_by: "00000000-0000-4000-8000-000000000003",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000054",
+    zone: "AV/Tech",
+    task_name: "Beamer einstellen [DEMO]",
+    shift_start: todayAt("08:00"),
+    shift_end: todayAt("09:30"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Beamer auf Leinwand ausrichten und Keystone korrigieren.",
+    created_by: "00000000-0000-4000-8000-000000000003",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000055",
+    zone: "AV/Tech",
+    task_name: "Funkmikros testen [DEMO]",
+    shift_start: todayAt("10:00"),
+    shift_end: todayAt("11:00"),
+    people_needed: 2,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Frequenzen scannen, Batterien pruefen, Walk-Test durchfuehren.",
     created_by: "00000000-0000-4000-8000-000000000003",
   },
   {
@@ -507,14 +711,13 @@ const DEMO_TASKS = [
     shift_start: todayAt("14:00"),
     shift_end: todayAt("16:00"),
     people_needed: 2,
-    slots_remaining: 2,
+    slots_remaining: 1,
     priority: "warning",
     status: "open",
-    description:
-      "Upload-Bandbreite, OBS-Scenes, Backup-Stream verifizieren.",
+    description: "Upload-Bandbreite, OBS-Scenes, Backup-Stream verifizieren.",
     created_by: "00000000-0000-4000-8000-000000000003",
   },
-  // Main Hall
+  // ---- Main Hall (4 complete + 1 open = 80 %) ----
   {
     id: "00000000-0000-4000-a000-000000000061",
     zone: "Main Hall",
@@ -533,13 +736,38 @@ const DEMO_TASKS = [
     zone: "Main Hall",
     task_name: "Teppich verlegen [DEMO]",
     shift_start: todayAt("11:00"),
-    shift_end: todayAt("13:30"),
+    shift_end: todayAt("13:00"),
     people_needed: 5,
-    slots_remaining: 3,
-    priority: "warning",
-    status: "open",
-    description:
-      "Mittelgang-Teppich und Laeufer zu den Buehnenseiten.",
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Mittelgang-Teppich und Laeufer zu den Buehnenseiten.",
+    created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000064",
+    zone: "Main Hall",
+    task_name: "Podium aufbauen [DEMO]",
+    shift_start: todayAt("08:00"),
+    shift_end: todayAt("10:00"),
+    people_needed: 4,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Rednerpult und Paneldiskussion-Tisch auf dem Podium aufstellen.",
+    created_by: "00000000-0000-4000-8000-000000000002",
+  },
+  {
+    id: "00000000-0000-4000-a000-000000000065",
+    zone: "Main Hall",
+    task_name: "Beleuchtung Saal [DEMO]",
+    shift_start: todayAt("10:00"),
+    shift_end: todayAt("11:30"),
+    people_needed: 3,
+    slots_remaining: 0,
+    priority: "normal",
+    status: "complete",
+    description: "Saalbeleuchtung auf Event-Presets einstellen.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
   {
@@ -549,11 +777,10 @@ const DEMO_TASKS = [
     shift_start: todayAt("14:00"),
     shift_end: todayAt("15:00"),
     people_needed: 2,
-    slots_remaining: 2,
-    priority: "critical",
+    slots_remaining: 1,
+    priority: "warning",
     status: "open",
-    description:
-      "Leuchtmarkierungen anbringen, Fluchtwege freihalten.",
+    description: "Leuchtmarkierungen anbringen, Fluchtwege freihalten.",
     created_by: "00000000-0000-4000-8000-000000000002",
   },
 ];
@@ -562,68 +789,82 @@ const DEMO_TASKS = [
 // Assignments
 // ============================================================
 const DEMO_ASSIGNMENTS = [
-  // Stage A Task 2: 2 Plaetze besetzt
+  // Stage A — Sound-Check: 2 von 3 besetzt (1 slot remaining)
   {
-    task_id: "00000000-0000-4000-a000-000000000002",
+    task_id: "00000000-0000-4000-a000-000000000003",
     volunteer_id: "00000000-0000-4000-8000-000000000020",
     team_id: "00000000-0000-4000-9000-000000000001",
     status: "assigned",
   },
   {
-    task_id: "00000000-0000-4000-a000-000000000002",
+    task_id: "00000000-0000-4000-a000-000000000003",
     volunteer_id: "00000000-0000-4000-8000-000000000021",
     team_id: "00000000-0000-4000-9000-000000000001",
     status: "assigned",
   },
-  // Stage B Task 2: 2 Plaetze besetzt
+  // Stage B — Moderatorenpult: 1 von 2 besetzt (1 slot remaining)
   {
-    task_id: "00000000-0000-4000-a000-000000000012",
+    task_id: "00000000-0000-4000-a000-000000000013",
     volunteer_id: "00000000-0000-4000-8000-000000000022",
     team_id: "00000000-0000-4000-9000-000000000002",
     status: "assigned",
   },
+  // Catering — Mittagsservice: 4 von 6 besetzt (2 slots remaining)
   {
-    task_id: "00000000-0000-4000-a000-000000000012",
+    task_id: "00000000-0000-4000-a000-000000000022",
     volunteer_id: "00000000-0000-4000-8000-000000000023",
     team_id: "00000000-0000-4000-9000-000000000002",
     status: "assigned",
   },
-  // Backstage Task 1: 2 Plaetze besetzt
   {
-    task_id: "00000000-0000-4000-a000-000000000041",
+    task_id: "00000000-0000-4000-a000-000000000022",
     volunteer_id: "00000000-0000-4000-8000-000000000024",
     team_id: "00000000-0000-4000-9000-000000000005",
     status: "assigned",
   },
   {
-    task_id: "00000000-0000-4000-a000-000000000041",
+    task_id: "00000000-0000-4000-a000-000000000022",
     volunteer_id: "00000000-0000-4000-8000-000000000025",
     team_id: "00000000-0000-4000-9000-000000000005",
     status: "assigned",
   },
-  // AV/Tech Task 1: 2 Plaetze besetzt
   {
-    task_id: "00000000-0000-4000-a000-000000000051",
+    task_id: "00000000-0000-4000-a000-000000000022",
     volunteer_id: "00000000-0000-4000-8000-000000000026",
     team_id: "00000000-0000-4000-9000-000000000006",
     status: "assigned",
   },
+  // Entrance — Nachmittags-Empfang: 2 von 3 besetzt (1 slot remaining)
   {
-    task_id: "00000000-0000-4000-a000-000000000051",
+    task_id: "00000000-0000-4000-a000-000000000035",
     volunteer_id: "00000000-0000-4000-8000-000000000027",
     team_id: "00000000-0000-4000-9000-000000000006",
     status: "assigned",
   },
-  // Main Hall Task 2: 2 Plaetze besetzt
   {
-    task_id: "00000000-0000-4000-a000-000000000062",
+    task_id: "00000000-0000-4000-a000-000000000035",
     volunteer_id: "00000000-0000-4000-8000-000000000028",
     team_id: "00000000-0000-4000-9000-000000000007",
     status: "assigned",
   },
+  // Backstage — Green Room: 1 von 2 besetzt (1 slot remaining)
   {
-    task_id: "00000000-0000-4000-a000-000000000062",
+    task_id: "00000000-0000-4000-a000-000000000042",
     volunteer_id: "00000000-0000-4000-8000-000000000029",
+    team_id: "00000000-0000-4000-9000-000000000007",
+    status: "assigned",
+  },
+  // AV/Tech — Streaming-Check: 1 von 2 besetzt (1 slot remaining)
+  {
+    task_id: "00000000-0000-4000-a000-000000000052",
+    volunteer_id: "00000000-0000-4000-8000-00000000002a",
+    team_id: "00000000-0000-4000-9000-000000000006",
+    status: "assigned",
+  },
+  // Main Hall — Notausgaenge: 1 von 2 besetzt (1 slot remaining)
+  {
+    task_id: "00000000-0000-4000-a000-000000000063",
+    volunteer_id: "00000000-0000-4000-8000-00000000002b",
     team_id: "00000000-0000-4000-9000-000000000007",
     status: "assigned",
   },
@@ -732,49 +973,21 @@ const DEMO_NOTIFICATIONS = [
 ];
 
 // ============================================================
-// Forecasts (7 Zonen x 8 Slots = 56 Rows)
+// Forecasts (9 Tage, neues Schema ab Migration 010 — tagesbasiert)
 // ============================================================
-const ZONES = [
-  "Stage A",
-  "Stage B",
-  "Catering",
-  "Entrance",
-  "Backstage",
-  "AV/Tech",
-  "Main Hall",
+// Pro Tag eine Zeile: predicted_people, status, tasks_active (als Text).
+// Schema vom ML-Kollegen: kein zone-Feld, status = on_track/at_risk/behind.
+const DEMO_FORECASTS = [
+  { day: 1, predicted_people: 24, status: "on_track", tasks_active: "Traverse, Buehne, Kueche, Tresen, Technik-Raum" },
+  { day: 2, predicted_people: 33, status: "on_track", tasks_active: "Licht, Kabel, Geschirr, Badges, Backstage-Catering, Mischpult" },
+  { day: 3, predicted_people: 35, status: "on_track", tasks_active: "Sound-Check, Moderatorenpult, Mittagsservice, Kameras, Teppich" },
+  { day: 4, predicted_people: 38, status: "on_track", tasks_active: "Stuhlreihen, Podium, Beleuchtung, Streaming, Nachmittags-Empfang" },
+  { day: 5, predicted_people: 30, status: "at_risk",  tasks_active: "Green Room, Notausgaenge, Funkmikros, Beamer" },
+  { day: 6, predicted_people: 28, status: "on_track", tasks_active: "Rueckwand, Monitore, Wegweiser, Garderobe" },
+  { day: 7, predicted_people: 32, status: "on_track", tasks_active: "Buehnendeko, Kuehlware, Kuenstlerempfang, Sicherheitscheck" },
+  { day: 8, predicted_people: 25, status: "at_risk",  tasks_active: "Fruehstuecksservice, Strom, Empfangstresen" },
+  { day: 9, predicted_people: 15, status: "behind",   tasks_active: "Abbau, Endreinigung" },
 ];
-const SLOTS = [
-  "07:00",
-  "09:00",
-  "11:00",
-  "13:00",
-  "15:00",
-  "17:00",
-  "19:00",
-  "21:00",
-];
-// Vorhergesagte Werte pro Zone (gleiche wie Migration 008)
-const FORECAST_VALUES = {
-  "Stage A": [2, 4, 5, 6, 6, 8, 5, 2],
-  "Stage B": [3, 5, 6, 7, 7, 6, 4, 2],
-  Catering: [5, 4, 8, 8, 3, 5, 6, 3],
-  Entrance: [2, 5, 4, 3, 3, 4, 3, 2],
-  Backstage: [1, 2, 3, 4, 4, 5, 4, 2],
-  "AV/Tech": [2, 4, 5, 6, 6, 7, 5, 2],
-  "Main Hall": [3, 6, 8, 9, 7, 10, 6, 3],
-};
-
-const DEMO_FORECASTS = [];
-for (const zone of ZONES) {
-  const values = FORECAST_VALUES[zone];
-  for (let i = 0; i < SLOTS.length; i++) {
-    DEMO_FORECASTS.push({
-      zone,
-      shift_slot: SLOTS[i],
-      predicted_count: values[i],
-    });
-  }
-}
 
 // ============================================================
 // Hauptlogik
@@ -785,7 +998,25 @@ async function main() {
   // Schritt 0: Cleanup — bestehende Demo-Daten loeschen
   console.log("Schritt 0: Bestehende Demo-Daten loeschen...");
 
-  // Auth-User loeschen (cascaded auf profiles)
+  // Reihenfolge: Erst abhaengige Daten loeschen, DANN auth.users (weil
+  // CASCADE created_by auf NULL setzt und wir die Tasks sonst nicht finden).
+
+  // Tasks loeschen: nach [DEMO]-Tag, bekannten Demo-UUIDs und created_by.
+  // Mehrere Strategien, weil Migration 013 den [DEMO]-Tag entfernt hat und
+  // CASCADE von auth.users das created_by auf NULL setzt.
+  await supabase.from("tasks").delete().like("task_name", "%[DEMO]");
+  const demoTaskIds = DEMO_TASKS.map((t) => t.id);
+  await supabase.from("tasks").delete().in("id", demoTaskIds);
+  await supabase.from("requests").delete().like("notes", "[DEMO]%");
+  await supabase
+    .from("notifications")
+    .delete()
+    .like("message", "[DEMO]%");
+  await supabase.from("forecasts").delete().not("id", "is", null);
+  await supabase.from("teams").delete().like("name", "[DEMO]%");
+  console.log("  Demo-Daten (Tasks/Requests/Notifications/Forecasts/Teams) entfernt.");
+
+  // Auth-User loeschen (cascaded auf profiles + assignments)
   const { data: existingUsers } =
     await supabase.auth.admin.listUsers({ perPage: 1000 });
   const demoUsers = (existingUsers?.users || []).filter((u) =>
@@ -794,18 +1025,7 @@ async function main() {
   for (const u of demoUsers) {
     await supabase.auth.admin.deleteUser(u.id);
   }
-  console.log(`  ${demoUsers.length} alte Auth-User entfernt.`);
-
-  // Verwaiste Demo-Daten bereinigen
-  await supabase.from("tasks").delete().like("task_name", "%[DEMO]");
-  await supabase.from("requests").delete().like("notes", "[DEMO]%");
-  await supabase
-    .from("notifications")
-    .delete()
-    .like("message", "[DEMO]%");
-  await supabase.from("forecasts").delete().gte("id", "00000000-0000-0000-0000-000000000000");
-  await supabase.from("teams").delete().like("name", "[DEMO]%");
-  console.log("  Verwaiste Tasks/Requests/Notifications/Forecasts/Teams entfernt.\n");
+  console.log(`  ${demoUsers.length} alte Auth-User entfernt.\n`);
 
   // Schritt 1: Demo-User ueber Admin-API erstellen
   console.log("Schritt 1: Demo-User erstellen...");
