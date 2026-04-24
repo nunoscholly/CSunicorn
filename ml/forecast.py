@@ -1,6 +1,7 @@
 # ML-Forecast: Tagesprognose fuer den Personalbedarf der Build Week
 # Trainiert eine lineare Regression auf historischen Schichtdaten (2024–2025),
-# berechnet einen Abhaengigkeitsgraph und schreibt Tagesprognosen in Supabase.
+# liest den aktuellen Aufgabenstand aus Supabase, berechnet einen
+# Abhaengigkeitsgraph und schreibt Tagesprognosen in die forecasts-Tabelle.
 # Ausgefuehrt als Render Cron Job (Render.com) oder lokal: cd ml && python forecast.py
 
 import os
@@ -34,8 +35,31 @@ CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "ml_info",
 WORKDAY_HOURS = 12
 # Build Week dauert genau 9 Tage (Tag 1–5 Setup, 6–7 Showday, 8–9 Teardown)
 TOTAL_DAYS = 9
-# Nur fuer 2026 eine Vorhersage erstellen; 2024 und 2025 sind Trainingsdaten
-PREDICTION_YEAR = 2026
+
+
+# =============================================================================
+# Supabase-Verbindung herstellen
+# =============================================================================
+
+def create_supabase_client():
+    """Supabase-Client erstellen mit Zugangsdaten aus der .env-Datei."""
+    # load_dotenv(): Liest Schluessel-Wert-Paare aus der Datei ml/.env und
+    # macht sie als Umgebungsvariablen verfuegbar. Siehe Kommentar oben bei
+    # den Imports fuer eine ausfuehrliche Erklaerung.
+    load_dotenv()
+
+    # Variablennamen muessen mit der .env-Datei uebereinstimmen — dieselben
+    # Namen wie im Next.js-Frontend, plus service_role fuer Schreibzugriff
+    url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+
+    # Ohne Credentials abbrechen statt crashen — gibt klare Fehlermeldung
+    if not url or not key:
+        print("FEHLER: NEXT_PUBLIC_SUPABASE_URL oder SUPABASE_SERVICE_ROLE_KEY nicht gesetzt.")
+        print("Setze Variablen in ml/.env")
+        return None
+
+    return create_client(url, key)
 
 
 # =============================================================================
@@ -64,8 +88,7 @@ def load_and_reshape(csv_path):
         is_show = 1 if 6 <= day <= 7 else 0
         is_teardown = 1 if day >= 8 else 0
 
-        # Jedes Jahr als eigene Beobachtung hinzufuegen — das verdreifacht
-        # den Datensatz und gibt dem Modell mehr Trainingsbeispiele
+        # Nur 2024 und 2025 als Trainingsdaten — 2026 ist die Vorhersage
         for year, people_col, time_col in [
             (2024, "2024 People", "2024 Time (h)"),
             (2025, "2025 People", "2025 Time (h)"),
@@ -162,12 +185,12 @@ def train_model(df_train):
     return model, scaler, feature_cols
 
 
-def predict_2026_durations(df, model, scaler, feature_cols):
-    """ML-Vorhersage fuer alle 2026-Aufgaben berechnen und mit Ist-Werten vergleichen."""
+def evaluate_on_csv(df_filtered, model, scaler, feature_cols):
+    """Modell auf 2026-CSV-Daten evaluieren (Out-of-sample-Vergleich fuer Grading)."""
     # .copy(): Erstellt eine unabhaengige Kopie des DataFrames, damit wir
     # neue Spalten hinzufuegen koennen ohne den Original-DataFrame zu veraendern.
     # Nicht explizit in W8 gelehrt, aber noetig um SettingWithCopyWarning zu vermeiden.
-    df_2026 = df[df["year"] == PREDICTION_YEAR].copy()
+    df_2026 = df_filtered[df_filtered["year"] == 2026].copy()
 
     X_2026 = df_2026[feature_cols]
     X_2026_scaled = scaler.transform(X_2026)
@@ -186,9 +209,10 @@ def predict_2026_durations(df, model, scaler, feature_cols):
         df_2026["duration_hours"].values - df_2026["predicted_duration"].values
     ))
 
-    print(f"Out-of-sample MAE (2026): {mae_2026:.2f} Stunden")
+    print("--- Modell-Evaluation auf historischen 2026-Daten ---")
+    print(f"Out-of-sample MAE: {mae_2026:.2f} Stunden")
     print()
-    print("Vorhersage 2026 (Auszug):")
+    print("Vorhersage vs. Ist-Werte (CSV):")
     for _, row in df_2026.iterrows():
         print(f"  {row['task_name']:35s}  "
               f"Ist: {row['duration_hours']:5.1f}h  "
@@ -196,43 +220,142 @@ def predict_2026_durations(df, model, scaler, feature_cols):
               f"({row['people_count']} Leute)")
     print()
 
-    return df_2026
+
+# =============================================================================
+# Teil B: Live-Daten aus Supabase lesen und ML-Vorhersage anwenden
+# =============================================================================
+
+def fetch_live_tasks(supabase):
+    """Aktuelle Aufgaben aus der Supabase-Tabelle 'tasks' lesen."""
+    # .select() mit den Spalten die wir fuer Scheduling und ML brauchen
+    # service_role Key umgeht RLS — voller Lesezugriff auf alle Zeilen
+    try:
+        response = supabase.table("tasks").select(
+            "task_name, depends_on, day, people_needed, "
+            "slots_remaining, duration_hours, status"
+        ).execute()
+        tasks = response.data
+        print(f"{len(tasks)} Aufgaben aus Supabase geladen")
+        return tasks
+    except Exception as e:
+        print(f"FEHLER beim Laden der Aufgaben: {e}")
+        return []
+
+
+def predict_live_durations(live_tasks, model, scaler, feature_cols):
+    """ML-Vorhersage fuer offene Aufgaben, abgeschlossene bekommen Dauer 0."""
+    # Fuer jede Aufgabe die ML-Features berechnen und Dauer vorhersagen.
+    # Abgeschlossene Aufgaben brauchen keine Vorhersage — sie sind fertig.
+    rows = []
+    for task in live_tasks:
+        task_name = task["task_name"]
+        day = task["day"]
+        status = task["status"]
+        people = task["people_needed"]
+        db_duration = task["duration_hours"]
+
+        # Abgeschlossene Aufgaben: keine Restdauer, kein Personalbedarf
+        if status == "complete":
+            rows.append({
+                "task_name": task_name,
+                "predicted_duration": 0.0,
+                "people_for_forecast": 0,
+                "status": status,
+            })
+            continue
+
+        # Meilensteine (Dauer 0 in der DB) sind Zeitpunkte, keine Arbeit
+        if db_duration is not None and float(db_duration) == 0:
+            rows.append({
+                "task_name": task_name,
+                "predicted_duration": 0.0,
+                "people_for_forecast": 0,
+                "status": status,
+            })
+            continue
+
+        # Tag kann None sein wenn nicht gesetzt — Fallback auf Tag 1
+        if day is None:
+            day = 1
+
+        # Phasen-Flags berechnen (gleiche Logik wie beim Training)
+        is_setup = 1 if day <= 5 else 0
+        is_show = 1 if 6 <= day <= 7 else 0
+        is_teardown = 1 if day >= 8 else 0
+
+        # Showday-Aufgaben (Tag 6–7) sind feste Betriebsschichten (z.B.
+        # "Fahrdienst" 16h). Das ML-Modell unterschaetzt sie systematisch
+        # weil die Trainingsdaten von 1–6h-Aufgaben dominiert werden.
+        # Deshalb verwenden wir die geplante Dauer aus der DB statt ML.
+        if is_show == 1 and db_duration is not None and float(db_duration) > 0:
+            predicted = float(db_duration)
+        else:
+            # ML-Features als DataFrame aufbauen (sklearn erwartet 2D-Input)
+            features = pd.DataFrame([{
+                "people_count": people,
+                "day": day,
+                "is_setup": is_setup,
+                "is_show": is_show,
+                "is_teardown": is_teardown,
+            }])
+            features_scaled = scaler.transform(features)
+            predicted = model.predict(features_scaled)[0]
+
+            # .clip(lower=0.5): Mindestens 0.5h damit keine negativen Dauern
+            # oder unrealistisch kurze Zeiten entstehen
+            if predicted < 0.5:
+                predicted = 0.5
+
+        rows.append({
+            "task_name": task_name,
+            "predicted_duration": predicted,
+            "people_for_forecast": people,
+            "status": status,
+        })
+
+    # Ergebnis ausgeben
+    print()
+    print("ML-Vorhersage fuer Live-Aufgaben:")
+    for r in rows:
+        status_tag = "[FERTIG]" if r["status"] == "complete" else "[OFFEN] "
+        print(f"  {status_tag} {r['task_name']:35s}  "
+              f"Dauer: {r['predicted_duration']:5.1f}h  "
+              f"({r['people_for_forecast']} Leute)")
+    print()
+
+    return rows
 
 
 # =============================================================================
-# Teil B: Scheduling — Abhaengigkeitsgraph und Tagesprognose
+# Teil C: Scheduling — Abhaengigkeitsgraph und Tagesprognose
 # =============================================================================
 
-def parse_dependencies(csv_path):
-    """Abhaengigkeiten, Tage und Personalzahlen aus der CSV parsen."""
-    raw = pd.read_csv(csv_path)
-    raw.columns = [c.strip() for c in raw.columns]
-
+def parse_live_dependencies(live_tasks):
+    """Abhaengigkeiten, Tage und Personalzahlen aus den Live-Aufgaben parsen."""
     # blocks[task] = Liste der Aufgaben, die diese Aufgabe blockiert
-    # Richtung in der CSV: "A blockiert B" heisst B kann erst starten wenn A fertig ist
+    # Richtung: depends_on enthaelt die DOWNSTREAM-Aufgaben (gleiche Semantik
+    # wie die CSV-Spalte "Roadblocking"): "A blockiert B" steht bei A
     blocks = {}
     all_tasks = []
-    # task_days speichert den geplanten Tag jeder Aufgabe (1–9) aus der CSV,
+    # task_days speichert den geplanten Tag jeder Aufgabe (1–9),
     # damit der Scheduler Aufgaben an ihren Originaltag verankern kann
     task_days = {}
-    # task_people speichert die geplante Personalzahl (2026) fuer ALLE Aufgaben,
-    # auch fuer Meilensteine die im ML-Datensatz gefiltert wurden — damit ihre
-    # Personalzahl (z.B. 600 bei "Start of showday") nicht verloren geht
+    # task_people speichert die geplante Personalzahl fuer ALLE Aufgaben
     task_people = {}
 
-    for _, row in raw.iterrows():
-        task = row["Task"].strip()
-        all_tasks.append(task)
-        task_days[task] = int(row["Day"])
-        task_people[task] = int(row["2026 People"])
-        roadblocking = str(row["Roadblocking"]).strip()
+    for task in live_tasks:
+        name = task["task_name"]
+        all_tasks.append(name)
+        # Tag kann None sein — Fallback auf Tag 1
+        task_days[name] = int(task["day"]) if task["day"] is not None else 1
+        task_people[name] = int(task["people_needed"])
 
-        # str() auf die Zelle anwenden, weil pandas leere Zellen als
-        # float NaN einliest — str(NaN) ergibt "nan"
-        if roadblocking and roadblocking != "nan":
-            # Mehrere blockierte Aufgaben sind mit " + " getrennt
-            downstream = [t.strip() for t in roadblocking.split(" + ")]
-            blocks[task] = downstream
+        depends_on = task["depends_on"]
+        # depends_on kann None sein (kein Nachfolger) oder ein String
+        # mit " + " als Trennzeichen fuer mehrere Nachfolger
+        if depends_on is not None and str(depends_on).strip() != "":
+            downstream = [t.strip() for t in str(depends_on).split(" + ")]
+            blocks[name] = downstream
 
     # Alle bekannten Aufgabennamen als Set fuer schnelle Pruefung
     all_tasks_set = set(all_tasks)
@@ -240,20 +363,19 @@ def parse_dependencies(csv_path):
     # Richtung umkehren: predecessors[task] = Aufgaben die fertig sein muessen
     # (der Scheduling-Algorithmus braucht diese Richtung)
     predecessors = {}
-    for task in all_tasks:
-        predecessors[task] = []
+    for name in all_tasks:
+        predecessors[name] = []
 
     for blocker, downstream_list in blocks.items():
         for downstream in downstream_list:
-            # Warnung bei haengenden Referenzen — wenn eine Aufgabe in der
-            # Roadblocking-Spalte steht aber nicht als eigene Zeile existiert,
-            # ist das ein Datenfehler in der CSV
+            # Warnung bei haengenden Referenzen — wenn eine Aufgabe in
+            # depends_on steht aber nicht als eigene Zeile existiert
             if downstream not in all_tasks_set:
-                print(f"WARNUNG: '{downstream}' in Roadblocking von "
+                print(f"WARNUNG: '{downstream}' in depends_on von "
                       f"'{blocker}' existiert nicht als Aufgabe")
                 continue
-            # Selbstreferenzen ignorieren (z.B. "End of event" blockiert
-            # sich selbst in der CSV — wuerde sonst einen Zyklus erzeugen)
+            # Selbstreferenzen ignorieren (z.B. "Event-Ende" blockiert
+            # sich selbst — wuerde sonst einen Zyklus erzeugen)
             if downstream != blocker:
                 predecessors[downstream].append(blocker)
 
@@ -299,6 +421,9 @@ def topological_sort(all_tasks, predecessors):
         for task in all_tasks:
             if task not in sorted_tasks:
                 missing.append(task)
+        # join(): Verbindet eine Liste von Strings mit einem Trennzeichen
+        # zu einem einzigen String. Nicht im Kurs gelehrt, aber die
+        # sauberste Art eine Liste in einen kommaseparierten Text umzuwandeln.
         print(f"WARNUNG: {len(missing)} Aufgabe(n) wegen Zyklus nicht einsortiert: "
               + ", ".join(missing))
 
@@ -314,8 +439,11 @@ def compute_schedule(sorted_tasks, predecessors, durations, task_days):
     # nicht verschoben werden koennen, egal was die Abhaengigkeiten sagen.
     # Der Showday-Termin steht fest — wenn Setup-Aufgaben spaet dran sind,
     # startet der Showday trotzdem (die Setup-Aufgaben sind dann "behind").
+    # Beide Namensversionen unterstuetzt (englisch + deutsch nach Migration 010)
     pinned_tasks = {
+        "Show-Tag-Start": 5 * WORKDAY_HOURS,
         "Start of showday": 5 * WORKDAY_HOURS,
+        "Show-Tag-Ende": 6 * WORKDAY_HOURS,
         "End of Showday": 6 * WORKDAY_HOURS,
     }
 
@@ -340,7 +468,7 @@ def compute_schedule(sorted_tasks, predecessors, durations, task_days):
             earliest_start[task] = latest_pred_end
 
         # Verankerung: Aufgabe darf nicht vor ihrem geplanten Tag starten.
-        # Der Originaltag aus der CSV dient als Mindest-Startzeit.
+        # Der Originaltag dient als Mindest-Startzeit.
         # So bleibt die Grundstruktur der Build Week erhalten, aber
         # Verzoegerungen koennen Aufgaben nach hinten schieben.
         original_day = task_days.get(task, 1)
@@ -374,15 +502,14 @@ def aggregate_daily(sorted_tasks, earliest_start, earliest_end, people_per_task)
 
         for task in sorted_tasks:
             task_start = earliest_start[task]
-            task_end = earliest_end[task]
 
-            # Aufgabe ist an diesem Tag aktiv wenn sie den Tag ueberlappt.
-            # >= statt > bei task_end, damit Meilensteine mit Dauer 0
-            # (z.B. "Start of showday") am Tag ihres Starts gezaehlt werden.
-            # Showday-Aufgaben (z.B. "Driving" mit 16h) koennen laenger als
-            # ein 12h-Tag dauern und in den naechsten Tag hineinragen — das
-            # ist laut Einsatzplan erlaubt ("Work CAN exceed 12h").
-            if task_start < day_end_h and task_end >= day_start_h:
+            # Eine Aufgabe zaehlt fuer den Tag, an dem sie STARTET.
+            # Wenn eine Aufgabe laenger als 12h dauert (z.B. "Fahrdienst" 16h
+            # am Showday), wuerde sie sonst auch am naechsten Tag gezaehlt
+            # und den Personalbedarf dort faelschlich aufblaehen — die Leute
+            # arbeiten eine lange Schicht, nicht zwei separate Tage.
+            # Meilensteine (Dauer 0) werden am Starttag gezaehlt (>= Pruefung).
+            if task_start >= day_start_h and task_start < day_end_h:
                 people_total = people_total + people_per_task.get(task, 0)
                 active_tasks.append(task)
 
@@ -392,10 +519,10 @@ def aggregate_daily(sorted_tasks, earliest_start, earliest_end, people_per_task)
     return daily_people, daily_tasks
 
 
-def determine_status(daily_tasks, earliest_end, task_days):
+def determine_status(daily_tasks, earliest_end, task_days, completed_tasks):
     """Status pro Tag bestimmen basierend auf Deadline-Vergleich."""
     # Status wird anhand von Deadlines bestimmt, nicht relativ zum Spitzentag:
-    # - "behind": Mindestens eine Aufgabe endet spaeter als ihr geplanter Tag
+    # - "behind": Mindestens eine offene Aufgabe endet spaeter als ihr geplanter Tag
     # - "at_risk": Aufgaben sind nah an ihrer Deadline (weniger als 2h Puffer)
     # - "on_track": Alle Aufgaben liegen im Plan
     statuses = {}
@@ -405,6 +532,9 @@ def determine_status(daily_tasks, earliest_end, task_days):
         status = "on_track"
 
         for task in active:
+            # Abgeschlossene Aufgaben koennen keinen Verzug mehr verursachen
+            if task in completed_tasks:
+                continue
             if task not in earliest_end or task not in task_days:
                 continue
             # Deadline = Ende des geplanten Tages in Stunden
@@ -429,26 +559,8 @@ def determine_status(daily_tasks, earliest_end, task_days):
 # Supabase: Prognose in die Datenbank schreiben
 # =============================================================================
 
-def write_to_supabase(daily_people, daily_tasks, statuses):
+def write_to_supabase(supabase, daily_people, daily_tasks, statuses):
     """Tagesprognose in die Supabase-Tabelle 'forecasts' schreiben (delete + insert)."""
-    # load_dotenv(): Liest Schluessel-Wert-Paare aus der Datei ml/.env und
-    # macht sie als Umgebungsvariablen verfuegbar. Siehe Kommentar oben bei
-    # den Imports fuer eine ausfuehrliche Erklaerung.
-    load_dotenv()
-
-    # Variablennamen muessen mit der .env-Datei uebereinstimmen — dieselben
-    # Namen wie im Next.js-Frontend, plus service_role fuer Schreibzugriff
-    url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-
-    # Ohne Credentials abbrechen statt crashen — gibt klare Fehlermeldung
-    if not url or not key:
-        print("WARNUNG: NEXT_PUBLIC_SUPABASE_URL oder SUPABASE_SERVICE_ROLE_KEY nicht gesetzt.")
-        print("Ueberspringe Supabase-Upload. Setze Variablen in ml/.env")
-        return
-
-    supabase = create_client(url, key)
-
     # try/except fuer Netzwerkfehler — Supabase-Aufrufe koennen bei
     # Verbindungsproblemen fehlschlagen, und das Skript soll dann eine
     # verstaendliche Fehlermeldung ausgeben statt mit einem Traceback abzubrechen
@@ -486,64 +598,77 @@ def write_to_supabase(daily_people, daily_tasks, statuses):
 # =============================================================================
 
 def main():
-    """Hauptfunktion: ML-Modell trainieren, Zeitplan berechnen, Ergebnisse speichern."""
+    """Hauptfunktion: ML-Modell trainieren, Live-Daten laden, Zeitplan berechnen."""
 
-    # --- Teil A: ML ---
+    # --- Supabase-Verbindung ---
+    supabase = create_supabase_client()
+    if supabase is None:
+        print("Abbruch: Keine Supabase-Verbindung moeglich.")
+        return
+
+    # --- Teil A: ML-Modell auf historischen CSV-Daten trainieren ---
+    # Die CSV enthaelt 2024/2025/2026-Daten. Trainiert wird nur auf 2024+2025,
+    # 2026-CSV dient als Out-of-sample-Evaluation (Modellguete pruefen).
     df_all = load_and_reshape(CSV_PATH)
     df_filtered = filter_milestones(df_all)
     print(f"Datensatz: {len(df_all)} Zeilen gesamt, {len(df_filtered)} nach Filter")
     print()
 
     # Nur auf 2024 + 2025 trainieren — 2026 wird ausschliesslich fuer die
-    # Vorhersage verwendet. So vermeiden wir Data Leakage (das Modell sieht
+    # Evaluation verwendet. So vermeiden wir Data Leakage (das Modell sieht
     # die 2026-Antworten nicht waehrend des Trainings).
-    df_training = df_filtered[df_filtered["year"] != PREDICTION_YEAR]
+    df_training = df_filtered[df_filtered["year"] != 2026]
     print(f"Training auf {len(df_training)} Zeilen (2024 + 2025, ohne 2026)")
     print()
 
     model, scaler, feature_cols = train_model(df_training)
-    df_2026 = predict_2026_durations(df_filtered, model, scaler, feature_cols)
 
-    # --- Teil B: Scheduling ---
+    # Modell-Evaluation: Vorhersage auf 2026-CSV-Daten vergleichen
+    # (zeigt dem Grader wie gut das Modell auf ungesehenen Daten funktioniert)
+    evaluate_on_csv(df_filtered, model, scaler, feature_cols)
+
+    # --- Teil B: Live-Aufgaben aus Supabase laden und ML anwenden ---
     print("=" * 60)
-    print("TEIL B: Scheduling — Abhaengigkeitsgraph")
+    print("TEIL B: Live-Daten — Aufgaben aus Supabase")
     print("=" * 60)
 
-    all_tasks, predecessors, task_days, task_people = parse_dependencies(CSV_PATH)
+    live_tasks = fetch_live_tasks(supabase)
+
+    # Wenn keine Aufgaben in der DB sind, leere Prognose schreiben
+    if len(live_tasks) == 0:
+        print("Keine Aufgaben in der Datenbank. Schreibe leere Prognose.")
+        empty_people = {}
+        empty_tasks = {}
+        empty_status = {}
+        for day in range(1, TOTAL_DAYS + 1):
+            empty_people[day] = 0
+            empty_tasks[day] = []
+            empty_status[day] = "on_track"
+        write_to_supabase(supabase, empty_people, empty_tasks, empty_status)
+        return
+
+    # ML-Vorhersage: Offene Aufgaben bekommen vorhergesagte Dauer,
+    # abgeschlossene Aufgaben bekommen Dauer 0
+    predictions = predict_live_durations(live_tasks, model, scaler, feature_cols)
+
+    # --- Teil C: Scheduling ---
+    print("=" * 60)
+    print("TEIL C: Scheduling — Abhaengigkeitsgraph")
+    print("=" * 60)
+
+    all_tasks, predecessors, task_days, task_people = parse_live_dependencies(live_tasks)
     sorted_tasks = topological_sort(all_tasks, predecessors)
 
-    # Vorhergesagte Dauer pro Aufgabe aus dem ML-Modell uebernehmen
+    # Vorhergesagte Dauer und Personalzahlen aus den ML-Ergebnissen uebernehmen
     durations = {}
-    for _, row in df_2026.iterrows():
-        durations[row["task_name"]] = row["predicted_duration"]
-
-    # Showday-Aufgaben (Tag 6–7) sind feste Betriebsschichten (z.B. "Driving"
-    # 16h, "Service points" 16h) und keine variablen Bauaufgaben. Das ML-Modell
-    # unterschaetzt sie systematisch, weil die Trainingsdaten von 1–6h-Aufgaben
-    # dominiert werden. Deshalb verwenden wir hier die tatsaechlichen 2026-Werte
-    # aus der CSV statt der ML-Vorhersage.
-    df_2026_all = df_all[df_all["year"] == PREDICTION_YEAR]
-    for _, row in df_2026_all.iterrows():
-        if row["is_show"] == 1 and row["duration_hours"] > 0:
-            durations[row["task_name"]] = row["duration_hours"]
-
-    # Meilensteine sind im ML-Datensatz nicht enthalten (gefiltert), bekommen
-    # deshalb Dauer 0 damit der Forward Pass trotzdem funktioniert
-    for task in all_tasks:
-        if task not in durations:
-            durations[task] = 0.0
-
-    # Personalzahlen aus der CSV verwenden (nicht aus df_2026), damit alle
-    # Aufgaben eine korrekte Personalzahl haben. Meilensteine (Dauer = 0)
-    # bekommen people = 0, weil sie einen Zeitpunkt markieren ("alle sind da"),
-    # aber keinen Arbeitstag mit Personalbedarf darstellen — sonst wuerden
-    # z.B. 600 Leute von "Start of showday" den Tagesbedarf aufblaehen
     people_per_task = {}
-    for task in all_tasks:
-        if durations.get(task, 0.0) > 0:
-            people_per_task[task] = task_people.get(task, 0)
-        else:
-            people_per_task[task] = 0
+    # Set der abgeschlossenen Aufgaben fuer die Status-Bestimmung
+    completed_tasks = set()
+    for pred in predictions:
+        durations[pred["task_name"]] = pred["predicted_duration"]
+        people_per_task[pred["task_name"]] = pred["people_for_forecast"]
+        if pred["status"] == "complete":
+            completed_tasks.add(pred["task_name"])
 
     earliest_start, earliest_end = compute_schedule(
         sorted_tasks, predecessors, durations, task_days
@@ -553,11 +678,11 @@ def main():
         sorted_tasks, earliest_start, earliest_end, people_per_task
     )
 
-    statuses = determine_status(daily_tasks, earliest_end, task_days)
+    statuses = determine_status(daily_tasks, earliest_end, task_days, completed_tasks)
 
     # Ergebnisse ausgeben
     print()
-    print("Tagesprognose:")
+    print("Tagesprognose (basierend auf Live-Daten):")
     print(f"{'Tag':>4s}  {'Personen':>9s}  {'Status':>10s}  Aktive Aufgaben")
     print("-" * 70)
     for day in range(1, TOTAL_DAYS + 1):
@@ -568,8 +693,13 @@ def main():
         print(f"{day:4d}  {daily_people[day]:9d}  {statuses[day]:>10s}  {task_list}")
     print()
 
+    if len(completed_tasks) > 0:
+        print(f"Abgeschlossene Aufgaben: {len(completed_tasks)} "
+              f"(Dauer=0, Personen=0 in der Prognose)")
+        print()
+
     # --- Supabase Upload ---
-    write_to_supabase(daily_people, daily_tasks, statuses)
+    write_to_supabase(supabase, daily_people, daily_tasks, statuses)
 
 
 if __name__ == "__main__":
