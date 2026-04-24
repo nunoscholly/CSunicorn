@@ -65,12 +65,14 @@ Navigation is role-gated. Persistent nav bar + logout on all authenticated views
 | Tasks complete % | completed / total tasks |
 | Coverage today % | staffed slots / required slots |
 
-### 1.2 ML Workforce Forecast Chart
-- **Type:** Grouped bar chart
-- **X-axis:** 2h time slots (07:00–21:00)
-- **Y-axis:** Headcount
-- **Bars:** Yellow = actual, outlined = predicted, red = shortage, future at 40% opacity
-- **Data:** `forecasts` table (written by Python ML script)
+### 1.2 ML Tagesprognose — Personalbedarf
+- **Type:** Bar chart (one bar per day, days 1–9)
+- **X-axis:** Build-Week-Tage (Tag 1–9) mit Phasen-Label (Setup / Showday / Teardown)
+- **Y-axis:** Vorhergesagter Personalbedarf
+- **Farbe:** Grün = im Plan, Gelb = kritisch, Rot = verzögert (Ampel-Logik)
+- **Tooltip:** Aktive Aufgaben pro Tag
+- **Leerstatus:** Hinweis "ml/forecast.py ausführen" wenn keine Daten vorhanden
+- **Data:** `forecasts` table (`day`, `predicted_people`, `status`, `tasks_active`), written by `ml/forecast.py`
 
 ### 1.3 Progress Bars (per zone)
 - Zones: Stage A · Stage B · Catering · Entrance · Backstage · AV/Tech · Main Hall

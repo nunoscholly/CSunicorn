@@ -1,26 +1,12 @@
 -- ============================================================
--- Migration 011 — Legacy-Demo-Admin reparieren
+-- Migration 011 — Demo-Admin-Rolle korrigieren (BUG-1 / BUG-S3)
 --
--- Hintergrund: Der dokumentierte Login admin@start.test / test123
--- aus der Aufgabenstellung wurde in früheren Seed-Läufen angelegt,
--- bevor das Trigger-Mapping für `raw_user_meta_data.role` zuverlässig
--- lief. Resultat: das profiles-Row bleibt auf dem Default 'volunteer'
--- und der Admin-Route-Guard in src/app/(dashboard)/admin/page.tsx
--- leitet den Login weiter aufs Volunteer-Dashboard. Siehe
--- docs/ux_findings_playwright.md §BUG-1.
---
--- Fix: das Profil zur Demo-Admin-Rolle hochziehen. Wir matchen per
--- Email-Spalte — die UUID aus scripts/seed-demo.mjs (…8000-…000000)
--- ist nur dann verlässlich, wenn der Seed über die Admin-API lief.
--- Idempotent: mehrfaches Ausführen ändert nichts mehr.
+-- Falls der handle_new_user-Trigger die Rolle aus user_metadata nicht
+-- korrekt uebernommen hat, wird admin@startcrew.test hier explizit
+-- auf role='admin' gesetzt.
 -- ============================================================
 
-BEGIN;
-
 UPDATE profiles
-SET role = 'admin',
-    name = CASE WHEN name = '' THEN 'Demo Admin' ELSE name END,
-    is_active = true
-WHERE email = 'admin@start.test';
-
-COMMIT;
+SET role = 'admin'
+WHERE email = 'admin@startcrew.test'
+  AND role <> 'admin';

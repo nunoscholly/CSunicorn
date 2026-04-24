@@ -8,7 +8,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/supabase/types";
 import { ZONES, type Zone } from "@/lib/zones";
 import { StatCards } from "./_components/stat-cards";
-import { ForecastChart, type ForecastSlot } from "./_components/forecast-chart";
+import { ForecastChart, type ForecastDay } from "./_components/forecast-chart";
 import {
     ZoneProgressList,
     type ZoneProgress,
@@ -29,12 +29,6 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
-// Feste 2h-Slots für den Forecast-Chart. 07:00–21:00 laut docs/visualizations.md §1.2.
-const FORECAST_SLOT_HOURS = [7, 9, 11, 13, 15, 17, 19, 21] as const;
-
-// Wenn eine Schicht während eines Slots aktiv ist, zählt jedes Assignment
-// als "anwesend" für diesen Slot. Der Slot-Mittelpunkt (Stunde + 1) reicht
-// als pragmatische Referenz — die Slots sind 2h breit.
 function isShiftActiveAt(
     shiftStart: string | null,
     shiftEnd: string | null,
@@ -94,7 +88,8 @@ export default async function ProjectPage() {
             ),
         supabase
             .from("forecasts")
-            .select("zone, shift_slot, predicted_count, generated_at"),
+            .select("day, predicted_people, status, tasks_active")
+            .order("day", { ascending: true }),
         supabase
             .from("profiles")
             .select("id, name, role, is_active")
@@ -168,42 +163,13 @@ export default async function ProjectPage() {
     });
 
     // --- Forecast-Chart (§1.2) -------------------------------------------
-    // Pro Slot: actual = Summe aller Assignments, deren Schicht den Slot
-    // überschneidet. predicted = Summe der predicted_count aus forecasts
-    // für denselben shift_slot über alle Zonen.
-    const assignmentByTask = new Map<string, number>();
-    for (const a of assignments) {
-        if (a.status !== "assigned") continue;
-        assignmentByTask.set(
-            a.task_id,
-            (assignmentByTask.get(a.task_id) ?? 0) + 1,
-        );
-    }
-
-    const now = new Date();
-    const forecastSlots: ForecastSlot[] = FORECAST_SLOT_HOURS.map((hour) => {
-        const slotDate = new Date(todayStart);
-        slotDate.setHours(hour + 1, 0, 0, 0); // Mittelpunkt des 2h-Slots.
-        const label = `${String(hour).padStart(2, "0")}:00`;
-
-        let actual = 0;
-        for (const t of tasks) {
-            if (isShiftActiveAt(t.shift_start, t.shift_end, slotDate)) {
-                actual += assignmentByTask.get(t.id) ?? 0;
-            }
-        }
-
-        const predicted = forecasts
-            .filter((f) => f.shift_slot === label)
-            .reduce((sum, f) => sum + (f.predicted_count ?? 0), 0);
-
-        return {
-            label,
-            actual,
-            predicted,
-            isFuture: slotDate.getTime() > now.getTime(),
-        };
-    });
+    // ML-Tagesprognose: pro Tag (1–9) die vorhergesagte Personenzahl.
+    const forecastDays: ForecastDay[] = forecasts.map((f) => ({
+        day: f.day as number,
+        predictedPeople: f.predicted_people as number,
+        status: f.status as "on_track" | "at_risk" | "behind",
+        tasksActive: (f.tasks_active as string) || "",
+    }));
 
     // --- Leads für Notification-Composer ---------------------------------
     const leads = profiles
@@ -245,7 +211,7 @@ export default async function ProjectPage() {
                 coverageTodayPct={coverageTodayPct}
             />
 
-            <ForecastChart slots={forecastSlots} />
+            <ForecastChart days={forecastDays} />
 
             <div className="grid gap-8 lg:grid-cols-2">
                 <ZoneProgressList rows={zoneProgress} />

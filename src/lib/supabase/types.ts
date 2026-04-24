@@ -47,6 +47,17 @@ export type Task = {
     created_at: string;
 };
 
+export type ForecastStatus = "on_track" | "at_risk" | "behind";
+
+export type Forecast = {
+    id: string;
+    day: number;
+    predicted_people: number;
+    status: ForecastStatus;
+    tasks_active: string | null;
+    generated_at: string;
+};
+
 // Das config-Table ist ein schlichter Key-Value-Store. Wir schlüsseln die
 // bekannten Keys hier explizit auf, damit Typos im Code auffallen.
 export type ConfigKey = "venue_map_path";
