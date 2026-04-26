@@ -3,6 +3,10 @@
 // Inline SVG ohne externe Charting-Bibliothek — hält die Bundle-Größe klein
 // und erlaubt volle Kontrolle über Farben und Brand-Identity.
 
+"use client";
+
+import { useState } from "react";
+
 export type ForecastDay = {
     day: number;
     predictedPeople: number;
@@ -192,12 +196,81 @@ export function ForecastChart({ days }: ForecastChartProps) {
                 />
             </svg>
 
-            {/* Leerer Zustand: erscheint wenn das Python-Skript noch nicht gelaufen ist */}
+            <ForecastInfo />
+
             {days.length === 0 ? (
                 <p className="mt-3 text-center text-xs text-concrete">
                     Noch keine Forecast-Daten. Forecast wird automatisch
                     aktualisiert sobald Aufgaben geändert werden.
                 </p>
+            ) : null}
+        </div>
+    );
+}
+
+function ForecastInfo() {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <div className="mt-4 rounded-lg border border-concrete/15 bg-background/50">
+            <button
+                type="button"
+                onClick={() => setOpen(!open)}
+                className="flex w-full items-center justify-between px-4 py-2.5 text-left text-xs font-semibold text-foreground/70 transition-colors hover:text-foreground"
+            >
+                <span>Wie funktioniert die ML-Prognose?</span>
+                <span className="text-concrete transition-transform" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
+                    ▼
+                </span>
+            </button>
+            {open ? (
+                <div className="space-y-3 border-t border-concrete/15 px-4 py-3 text-xs leading-relaxed text-foreground/60">
+                    <div>
+                        <p className="mb-1 font-semibold text-foreground/80">ML-Modell (Lineare Regression)</p>
+                        <p>
+                            Eine <span className="font-semibold text-foreground/80">Lineare Regression</span> (sklearn
+                            LinearRegression) wurde auf historischen Daten der Build Weeks 2024 und
+                            2025 trainiert. Das Modell lernt den Zusammenhang zwischen Teamgrösse,
+                            Tag und Phase (Setup / Showday / Teardown) und der benötigten Arbeitszeit
+                            pro Aufgabe. Features werden mit einem StandardScaler normalisiert.
+                        </p>
+                    </div>
+                    <div>
+                        <p className="mb-1 font-semibold text-foreground/80">Live-Daten</p>
+                        <p>
+                            Die Prognose basiert auf den aktuellen Aufgaben in der Datenbank.
+                            Abgeschlossene Aufgaben fliessen mit Dauer 0 ein — ihr Personalbedarf
+                            fällt weg. Für offene Aufgaben sagt das ML-Modell die voraussichtliche
+                            Dauer vorher.
+                        </p>
+                    </div>
+                    <div>
+                        <p className="mb-1 font-semibold text-foreground/80">Abhängigkeitsgraph</p>
+                        <p>
+                            Die Aufgaben sind untereinander abhängig (z.B. &quot;Licht installieren&quot;
+                            kann erst nach &quot;Kabel verlegen&quot; starten). Ein Scheduling-Algorithmus
+                            berechnet die frühestmöglichen Start- und Endzeiten unter Berücksichtigung
+                            aller Abhängigkeiten. Verzögerungen pflanzen sich automatisch fort.
+                        </p>
+                    </div>
+                    <div>
+                        <p className="mb-1 font-semibold text-foreground/80">Ampel-Status</p>
+                        <p>
+                            <span className="font-semibold" style={{ color: STATUS_COLORS.on_track }}>Im Plan</span> = alle Aufgaben
+                            liegen im Zeitrahmen. <span className="font-semibold" style={{ color: STATUS_COLORS.at_risk }}>Kritisch</span> = weniger
+                            als 2h Puffer bis zur Deadline. <span className="font-semibold" style={{ color: STATUS_COLORS.behind }}>Verzögert</span> = mindestens
+                            eine Aufgabe überschreitet ihren geplanten Tag.
+                        </p>
+                    </div>
+                    <div>
+                        <p className="mb-1 font-semibold text-foreground/80">Automatische Aktualisierung</p>
+                        <p>
+                            Die Prognose wird automatisch neu berechnet wenn Aufgaben abgeschlossen,
+                            Volunteers zugeteilt oder neue Tasks angelegt werden. Jede Änderung löst
+                            das ML-Modell aus — das Chart zeigt immer den aktuellen Stand.
+                        </p>
+                    </div>
+                </div>
             ) : null}
         </div>
     );
